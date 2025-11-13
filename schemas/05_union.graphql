@@ -1,0 +1,79 @@
+type Customer {
+	id: ID!
+	name: String!
+	vat: String!
+}
+
+type DangerousProduct {
+	id: ID!
+	code: String!
+	description: String!
+	maxTemperature: Float!
+}
+
+"""
+Implement the DateTime<Utc> scalar
+
+The input/output is a string in RFC3339 format.
+"""
+scalar DateTime
+
+type ExpiringProduct {
+	id: ID!
+	code: String!
+	description: String!
+	expirationDate: DateTime!
+}
+
+scalar Money
+
+type Order {
+	id: ID!
+	customer: Customer!
+	totalAmount: Money!
+	status: OrderStatus!
+	lines: [OrderLine!]!
+}
+
+type OrderLine {
+	id: ID!
+	product: ProductKind!
+	quantity: Int!
+	price: Money!
+	discount: Money
+}
+
+enum OrderStatus {
+	DRAFT
+	CONFIRMED
+	Cancelled
+}
+
+type Product {
+	id: ID!
+	code: String!
+	description: String!
+}
+
+union ProductKind = Product | DangerousProduct | ExpiringProduct
+
+type Query {
+	product(code: String!): ProductKind!
+	order(id: ID!): Order!
+}
+
+"""
+Directs the executor to include this field or fragment only when the `if` argument is true.
+"""
+directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+"""
+Directs the executor to skip this field or fragment when the `if` argument is true.
+"""
+directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+"""
+Provides a scalar specification URL for specifying the behavior of custom scalar types.
+"""
+directive @specifiedBy(url: String!) on SCALAR
+schema {
+	query: Query
+}

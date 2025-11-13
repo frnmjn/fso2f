@@ -1,0 +1,88 @@
+{
+  "exercises": [
+    {
+      "name": "01",
+      "instructions": "Create a Query that returns a product.\n\n📚 https://async-graphql.github.io/async-graphql/en/define_simple_object.html\n\nMake the test ex01 pass! Use #[SimpleObject].",
+      "test": "ex01_simple_object",
+      "solution": ""
+    },
+    {
+      "name": "02",
+      "instructions": "Add another Simple object (Order) and a custom resolver for OrderLine.\n\n📚 https://async-graphql.github.io/async-graphql/en/define_simple_object.html#user-defined-resolvers\n\nMake the test ex02 pass! Use #[ComplexObject].",
+      "test": "ex02_complex_object",
+      "solution": ""
+    },
+    {
+      "name": "03",
+      "instructions": "We want star separating the 2 bounded contexts. \n\nExpose both product and order queries using #[MergedObject].\n\n📚 https://async-graphql.github.io/async-graphql/en/merging_objects.html\n\nMake the test ex03 pass!",
+      "test": "ex03_merged_object",
+      "solution": ""
+    },
+    {
+      "name": "04",
+      "instructions": "Enrich the domain model:\n\nAdd a status field as an Enum to Order.\n\nAdd a Customer field (SimpleObject with id/name/vat).\n\nAdd a price field to order lines. It is a scalar type (amount + currency), and add a discount field of the same money type, but optional.\n\n📚 https://async-graphql.github.io/async-graphql/en/define_enum.html\n📚 https://async-graphql.github.io/async-graphql/en/custom_scalars.html\n\nMake the ex04 test pass!",
+      "test": "ex04_modeling",
+      "solution": ""
+    },
+    {
+      "name": "05",
+      "instructions": "Change the Product type to return a Union of Products: \n\nStandard Product\n\nDangerousProduct (with maxTemperature)\n\nExpiringProduct (with expirationDate).\n\n📚 https://async-graphql.github.io/async-graphql/en/define_union.html\n\nMake the test ex05 pass! Use inline fragments to query.",
+      "test": "ex05_union",
+      "solution": ""
+    },
+    {
+      "name": "06",
+      "instructions": "There is a lot of duplication into the query.\n\nPut the common fields (id, code, description) into an Interface.\n\n📚 https://async-graphql.github.io/async-graphql/en/define_interface.html\n\nMake the test ex06 pass!",
+      "test": "ex06_interface",
+      "solution": ""
+    },
+    {
+      "name": "07",
+      "instructions": "Let's create a new product.\n\nAdd a createProduct mutation using #[InputObject].\n\nPersist the product to the database and return the created Product. \nAll the db statementes are into the db folder. Requires DB pool in context.\n\n📚 https://async-graphql.github.io/async-graphql/en/define_input_object.html\n\nMake the test ex07 pass!",
+      "test": "ex07_mutation",
+      "solution": ""
+    },
+    {
+      "name": "08",
+      "instructions": "Change the mutation input to a #[OneofObject] (CreateProductKind) accepting one of: product, dangerousProduct, or expiringProduct. Return the created product as the Interface. Persist to DB.\n\n📚 https://async-graphql.github.io/async-graphql/en/define_one_of_object.html\n\nMake the test ex08 pass!",
+      "test": "ex08_one_of",
+      "solution": ""
+    },
+    {
+      "name": "09",
+      "instructions": "Split into two federated subgraphs: products (port 3001) and orders (port 3002). Orders references ProductKind via @interfaceObject. Use `cargo make local` to run with the router on port 5000.\n\n📚 https://async-graphql.github.io/async-graphql/en/apollo_federation.html\n\nMake the test ex09 pass!",
+      "test": "ex09_federation",
+      "solution": ""
+    },
+    {
+      "name": "10",
+      "instructions": "Add a customers subgraph (port 3003) behind a feature flag that overrides the customer name from the orders subgraph using @override. Use `cargo make control-plane` with WunderGraph cloud.\n\n📚 https://async-graphql.github.io/async-graphql/en/apollo_federation.html\n\nMake the test ex10 pass!",
+      "test": "ex10_feature_subgraph",
+      "solution": ""
+    },
+    {
+      "name": "11",
+      "instructions": "subscription.\n\nMake the test ex11 pass!",
+      "test": "ex11_subscription",
+      "solution": ""
+    },
+    {
+      "name": "12",
+      "instructions": "dataloader.\n\nMake the test ex12 pass!",
+      "test": "ex12_dataloader",
+      "solution": ""
+    },
+    {
+      "name": "13",
+      "instructions": "pagination.\n\nMake the test ex13 pass!",
+      "test": "ex13_pagination",
+      "solution": ""
+    },
+    {
+      "name": "14",
+      "instructions": "cynic.\n\nMake the test ex14 pass!",
+      "test": "ex14_cynic",
+      "solution": ""
+    }
+  ]
+}
