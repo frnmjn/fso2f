@@ -1,0 +1,63 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO orders (id, customer_id, customer_name, customer_vat, total_amount, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "customer_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "customer_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "customer_vat",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "total_amount",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 5,
+        "name": "status",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Float8",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "4b92ec6fed719b16e6a81903c7a19b56b9822ceefcccf43806e7fde1463bf6df"
+}

@@ -1,0 +1,148 @@
+services:
+  postgres:
+    environment:
+      POSTGRES_DB: fso2f
+      POSTGRES_PASSWORD: fso2f
+      POSTGRES_USER: fso2f
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    command: -c fsync=off -c full_page_writes=off
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "fso2f", "-U", "fso2f"]
+      interval: 5s
+      timeout: 4s
+      retries: 5
+    volumes:
+      - ./migrations:/docker-entrypoint-initdb.d
+
+  wundergraph-router-local:
+    image: ghcr.io/wundergraph/cosmo/router
+    environment:
+      LOG_LEVEL: info
+      CORS_ALLOW_CREDENTIALS: true
+      LISTEN_ADDR: '0.0.0.0:5000'
+      EXECUTION_CONFIG_FILE_PATH: /router.json
+    volumes:
+      - ./schemas/federation/router.json:/router.json
+    ports:
+      - '5000:5000'
+    profiles:
+      - local
+
+  products-subgraph-local:
+    container_name: products-subgraph
+    build: .
+    working_dir: /app
+    command: cargo run --bin 09_products
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgres://fso2f:fso2f@postgres:5432/fso2f
+      RUST_LOG: info
+    volumes:
+      - .:/app
+      - cargo-cache:/usr/local/cargo/registry
+      - target-cache:/app/target
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - local
+
+  orders-subgraph-local:
+    container_name: orders-subgraph
+    build: .
+    working_dir: /app
+    command: cargo run --bin 09_orders
+    ports:
+      - "3002:3002"
+    environment:
+      DATABASE_URL: postgres://fso2f:fso2f@postgres:5432/fso2f
+      RUST_LOG: info
+    volumes:
+      - .:/app
+      - cargo-cache:/usr/local/cargo/registry
+      - target-cache:/app/target
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - local
+
+  wundergraph-router-control-plane:
+    image: ghcr.io/wundergraph/cosmo/router
+    environment:
+      DEV_MODE: true
+      LISTEN_ADDR: '0.0.0.0:5000'
+      GRAPH_API_TOKEN: ${GRAPH_API_TOKEN}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - '5000:5000'
+    profiles:
+      - control-plane
+
+  customers-subgraph-control-plane:
+    container_name: customers-subgraph
+    build: .  
+    working_dir: /app
+    command: cargo run --bin 10_customers
+    ports:
+      - "3003:3003"
+    environment:
+      DATABASE_URL: postgres://fso2f:fso2f@postgres:5432/fso2f
+      RUST_LOG: info
+    volumes:
+      - .:/app
+      - cargo-cache:/usr/local/cargo/registry
+      - target-cache:/app/target
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - control-plane
+
+  products-subgraph-control-plane:
+    container_name: products-subgraph
+    build: .
+    working_dir: /app
+    command: cargo run --bin 10_products
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgres://fso2f:fso2f@postgres:5432/fso2f
+      RUST_LOG: info
+    volumes:
+      - .:/app
+      - cargo-cache:/usr/local/cargo/registry
+      - target-cache:/app/target
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - control-plane
+
+  orders-subgraph-control-plane:
+    container_name: orders-subgraph
+    build: .
+    working_dir: /app
+    command: cargo run --bin 10_orders
+    ports:
+      - "3002:3002"
+    environment:
+      DATABASE_URL: postgres://fso2f:fso2f@postgres:5432/fso2f
+      RUST_LOG: info
+    volumes:
+      - .:/app
+      - cargo-cache:/usr/local/cargo/registry
+      - target-cache:/app/target
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - control-plane
+
+volumes:
+  cargo-cache: {}
+  target-cache: {}

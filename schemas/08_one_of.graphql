@@ -1,0 +1,115 @@
+input CreateDangerousProduct {
+	code: String!
+	description: String!
+	maxTemperature: Float!
+}
+
+input CreateExpiringProduct {
+	code: String!
+	description: String!
+	expirationDate: DateTime!
+}
+
+input CreateProduct {
+	code: String!
+	description: String!
+}
+
+input CreateProductKind @oneOf {
+	product: CreateProduct
+	dangerousProduct: CreateDangerousProduct
+	expiringProduct: CreateExpiringProduct
+}
+
+type Customer {
+	id: ID!
+	name: String!
+	vat: String!
+}
+
+type DangerousProduct implements ProductKind {
+	id: ID!
+	code: String!
+	description: String!
+	maxTemperature: Float!
+}
+
+"""
+Implement the DateTime<Utc> scalar
+
+The input/output is a string in RFC3339 format.
+"""
+scalar DateTime
+
+type ExpiringProduct implements ProductKind {
+	id: ID!
+	code: String!
+	description: String!
+	expirationDate: DateTime!
+}
+
+scalar Money
+
+type Mutation {
+	createProduct(product: CreateProductKind!): ProductKind!
+}
+
+type Order {
+	id: ID!
+	customer: Customer!
+	totalAmount: Money!
+	status: OrderStatus!
+	lines: [OrderLine!]!
+}
+
+type OrderLine {
+	id: ID!
+	quantity: Int!
+	price: Money!
+	discount: Money
+	product: ProductKind!
+}
+
+enum OrderStatus {
+	DRAFT
+	CONFIRMED
+	Cancelled
+}
+
+type Product implements ProductKind {
+	id: ID!
+	code: String!
+	description: String!
+}
+
+interface ProductKind {
+	id: ID!
+	code: String!
+	description: String!
+}
+
+type Query {
+	product(code: String!): ProductKind
+	order(id: ID!): Order
+}
+
+"""
+Directs the executor to include this field or fragment only when the `if` argument is true.
+"""
+directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+"""
+Indicates that an Input Object is a OneOf Input Object (and thus requires exactly one of its field be provided)
+"""
+directive @oneOf on INPUT_OBJECT
+"""
+Directs the executor to skip this field or fragment when the `if` argument is true.
+"""
+directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+"""
+Provides a scalar specification URL for specifying the behavior of custom scalar types.
+"""
+directive @specifiedBy(url: String!) on SCALAR
+schema {
+	query: Query
+	mutation: Mutation
+}
