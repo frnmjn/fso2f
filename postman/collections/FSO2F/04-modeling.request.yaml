@@ -1,0 +1,31 @@
+$kind: graphql-request
+name: '04 - modeling'
+url: "{{ex04}}"
+query: |-
+  query ($orderId: ID!) {
+      order(id: $orderId) {
+          id
+          status
+          customer {
+              id
+              name
+              vat
+          }
+          totalAmount
+          lines {
+              product {
+                  id
+                  code
+                  description
+              }
+              quantity
+              price
+              discount
+          }
+      }
+  }
+variables: |-
+  {
+    "orderId": "aaaa1111-aa11-4aa1-8aa1-aaaaaaaaaaaa"
+  }
+order: 5000

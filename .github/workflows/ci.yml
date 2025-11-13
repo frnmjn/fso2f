@@ -1,0 +1,186 @@
+# Checks the workshop setup on the three platforms of the participants.
+#
+# On `main` the solutions are in place, so the exercise tests run too; on
+# `workshop` the exercises are empty skeletons and only the setup is checked.
+# Only the Linux runners can run Docker: the macOS and Windows jobs leave out
+# postgres, the subgraphs and the routers.
+name: CI
+
+on:
+  push:
+    branches: [main, workshop, "ci/**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  linux:
+    name: Linux (full setup with Docker)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The host target/ plus the Rust image and the subgraph builds in Docker fill the default disk.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -af
+          df -h /
+
+      - name: Ubuntu packages from the README
+        run: sudo apt-get update && sudo apt-get install -y build-essential cmake clang pkg-config
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-make
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Branch kind
+        id: kind
+        run: |
+          if [ -f tests/ex01_simple_object.rs ]; then echo "solutions=true" >> "$GITHUB_OUTPUT"; else echo "solutions=false" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Install wgc (README)
+        run: cargo make wgc-install
+
+      - name: cargo make check-setup
+        run: cargo make check-setup
+
+      - name: cargo make clippy
+        run: cargo make clippy
+
+      - name: Runner start (exercise 01)
+        if: steps.kind.outputs.solutions == 'true'
+        run: |
+          # "yes" to "Run tests?", "no" to "Proceed to next exercise?" (or to "Run the tests again?")
+          printf 'y\nn\n' | cargo make start
+
+      - name: Exercises 01-08, 11, 12
+        if: steps.kind.outputs.solutions == 'true'
+        run: |
+          for t in ex01_simple_object ex02_complex_object ex03_merged_object ex04_modeling \
+                   ex05_union ex06_interface ex07_mutation ex08_one_of ex11_dataloader \
+                   ex12_dataloader_federated; do
+            cargo test --test "$t"
+          done
+
+      - name: Exercise 09 through the runner (starts the local federation)
+        if: steps.kind.outputs.solutions == 'true'
+        run: |
+          echo 09 > .fso2f
+          # "yes" to "Run tests?" (starts the federation), "no" to "Proceed to next exercise?"
+          printf 'y\nn\n' | cargo make start
+
+      - name: Exercise 13 (cynic client against the router)
+        if: steps.kind.outputs.solutions == 'true'
+        run: cargo test --test ex13_cynic
+
+      - name: Exercise 10 with the local feature-flag router
+        if: steps.kind.outputs.solutions == 'true'
+        run: |
+          cargo make local-feature-flag
+          cargo test --test ex10_feature_subgraph
+
+      - name: Docker logs
+        if: failure()
+        run: docker compose --profile local --profile local-feature-flag logs --tail 100
+
+      - name: cargo make federation-down
+        if: always()
+        run: cargo make federation-down
+
+  native:
+    name: ${{ matrix.name }} (native, no Docker)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: MacOS
+            os: macos-latest
+          - name: Windows
+            os: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-make
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Branch kind
+        id: kind
+        run: |
+          $solutions = if (Test-Path tests/ex01_simple_object.rs) { 'true' } else { 'false' }
+          "solutions=$solutions" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Runner help
+        run: cargo make help
+
+      - name: Build and lint the workspace (C dependencies included)
+        run: cargo make clippy
+
+      - name: Exercise 00 schema test
+        run: cargo test --test ex00_init ex_0_schema
+
+      - name: Exercises 01-06 (no database)
+        if: steps.kind.outputs.solutions == 'true'
+        run: |
+          foreach ($t in 'ex01_simple_object', 'ex02_complex_object', 'ex03_merged_object',
+                         'ex04_modeling', 'ex05_union', 'ex06_interface') {
+            cargo test --test $t
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      - name: Runner start (exercise 01)
+        if: steps.kind.outputs.solutions == 'true'
+        run: |
+          # "yes" to "Run tests?", "no" to "Proceed to next exercise?" (or to "Run the tests again?")
+          'y', 'n' | cargo fso2f start
+
+      - name: Install wgc through npm
+        run: |
+          cargo make wgc-install
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo fso2f wgc --version
+
+      - name: Export schemas and compose the routers
+        if: steps.kind.outputs.solutions == 'true'
+        run: |
+          cargo make export-schemas
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo make wgc-build-router
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo make wgc-build-router-feature-flag
+
+      - name: Regenerate the ex13 supergraph
+        if: steps.kind.outputs.solutions == 'true'
+        run: |
+          Remove-Item schemas/13_supergraph.graphql
+          cargo make supergraph
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git diff --exit-code -- schemas/13_supergraph.graphql
+
+      - name: check-setup (Docker part expected to fail on these runners)
+        continue-on-error: true
+        run: cargo make check-setup

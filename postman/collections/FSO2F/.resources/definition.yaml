@@ -1,0 +1,56 @@
+$kind: collection
+name: FSO2F
+description: "The GraphQL requests of the workshop tests (tests/*.rs), with the same variables."
+variables:
+  - key: ex00
+    value: 'http://localhost:4000/graphql'
+    type: default
+    enabled: true
+  - key: ex01
+    value: 'http://localhost:4001/graphql'
+    type: default
+    enabled: true
+  - key: ex02
+    value: 'http://localhost:4002/graphql'
+    type: default
+    enabled: true
+  - key: ex03
+    value: 'http://localhost:4003/graphql'
+    type: default
+    enabled: true
+  - key: ex04
+    value: 'http://localhost:4004/graphql'
+    type: default
+    enabled: true
+  - key: ex05
+    value: 'http://localhost:4005/graphql'
+    type: default
+    enabled: true
+  - key: ex06
+    value: 'http://localhost:4006/graphql'
+    type: default
+    enabled: true
+  - key: ex07
+    value: 'http://localhost:4007/graphql'
+    type: default
+    enabled: true
+  - key: ex08
+    value: 'http://localhost:4008/graphql'
+    type: default
+    enabled: true
+  - key: ex09
+    value: 'http://localhost:4009/graphql'
+    type: default
+    enabled: true
+  - key: ex10
+    value: 'http://localhost:4010/graphql'
+    type: default
+    enabled: true
+  - key: ex11
+    value: 'http://localhost:4011/graphql'
+    type: default
+    enabled: true
+  - key: ex12
+    value: 'http://localhost:4012/graphql'
+    type: default
+    enabled: true

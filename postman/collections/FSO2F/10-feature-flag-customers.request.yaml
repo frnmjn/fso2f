@@ -1,0 +1,39 @@
+$kind: graphql-request
+name: '10 - feature flag customers'
+description: Disable the X-Feature-Flag header to get the customer name from orders instead of the customers subgraph.
+url: "{{ex10}}"
+query: |-
+  query ($orderId: ID!) {
+      order (id: $orderId) {
+          id
+          status
+          totalAmount
+          lines {
+              quantity
+              product {
+                  id
+                  code
+                  description
+                  ... on DangerousProduct {
+                      maxTemperature
+                  }
+                  ... on ExpiringProduct {
+                      expirationDate
+                  }
+              }
+          }
+          customer {
+              id
+              name
+              vat
+          }
+      }
+  }
+variables: |-
+  {
+    "orderId": "aaaa1111-aa11-4aa1-8aa1-aaaaaaaaaaaa"
+  }
+headers:
+- key: X-Feature-Flag
+  value: flag-customers
+order: 11000

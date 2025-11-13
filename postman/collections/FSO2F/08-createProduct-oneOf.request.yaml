@@ -1,0 +1,36 @@
+$kind: graphql-request
+name: '08 - createProduct oneOf'
+url: "{{ex08}}"
+query: |-
+  mutation ($product: CreateProductKind!) {
+      createProduct (product: $product) {
+          ... on Product {
+              id
+              code
+              description
+          }
+          ... on DangerousProduct {
+              id
+              code
+              description
+              maxTemperature
+          }
+          ... on ExpiringProduct {
+              id
+              code
+              description
+              expirationDate
+          }
+      }
+  }
+variables: |-
+  {
+    "product": {
+      "dangerousProduct": {
+        "code": "DANGER-101",
+        "description": "Dangerous chemical",
+        "maxTemperature": 45.5
+      }
+    }
+  }
+order: 9000

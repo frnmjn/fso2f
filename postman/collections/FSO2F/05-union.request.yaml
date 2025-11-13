@@ -1,0 +1,30 @@
+$kind: graphql-request
+name: '05 - union'
+url: "{{ex05}}"
+query: |-
+  query ($code: String!) {
+      product(code: $code) {
+          ... on Product {
+              id
+              code
+              description
+          }
+          ... on DangerousProduct {
+              id
+              code
+              description
+              maxTemperature
+          }
+          ... on ExpiringProduct {
+              id
+              code
+              description
+              expirationDate
+          }
+      }
+  }
+variables: |-
+  {
+    "code": "PISTOL-003"
+  }
+order: 6000

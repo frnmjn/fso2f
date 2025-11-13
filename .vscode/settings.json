@@ -1,0 +1,19 @@
+{
+  "rust-analyzer.cargo.buildScripts.enable": true,
+  "rust-analyzer.cargo.extraEnv": {
+    "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer",
+    "CC": "/usr/bin/clang",
+    "CXX": "/usr/bin/clang++",
+    "AR": "/usr/bin/ar",
+    "RANLIB": "/usr/bin/ranlib",
+    "SDKROOT": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
+  },
+  "rust-analyzer.check.extraEnv": {
+    "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer",
+    "CC": "/usr/bin/clang",
+    "CXX": "/usr/bin/clang++",
+    "AR": "/usr/bin/ar",
+    "RANLIB": "/usr/bin/ranlib",
+    "SDKROOT": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
+  }
+}

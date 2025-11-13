@@ -1,0 +1,236 @@
+[config]
+default_to_workspace = false
+# `init` is our exercise 00 server: do not run it as the hook cargo-make runs before every task.
+init_task = "empty"
+
+[env]
+RUST_LOG = "info"
+
+# Every task that is not a plain cargo command runs the cross-platform workshop
+# runner in runner/ through the `cargo fso2f` alias (.cargo/config.toml).
+
+# Development
+
+[tasks.clippy]
+description = "Run clippy lints"
+command = "cargo"
+args = ["clippy", "--workspace", "--all-targets", "--", "-D", "warnings"]
+
+[tasks.sqlx-prepare]
+description = "Regenerate the sqlx offline query cache (.sqlx)"
+command = "cargo"
+args = ["sqlx", "prepare", "--", "--all-targets"]
+
+# Workshop Runner
+
+[tasks.check-setup]
+description = "Check that the tools are installed, pull the Docker images and run the exercise 00 test"
+command = "cargo"
+args = ["fso2f", "check-setup"]
+
+[tasks.init]
+description = "Run the exercise 00 GraphQL server on http://localhost:4000/graphql"
+dependencies = ["db"]
+command = "cargo"
+args = ["run", "--bin", "00-init"]
+
+[tasks.start]
+description = "Show the instructions of the current exercise and ask to run its tests"
+dependencies = ["db"]
+command = "cargo"
+args = ["fso2f", "start"]
+
+[tasks.solution]
+description = "Replace the code of the current exercise with its solution from the main branch"
+command = "cargo"
+args = ["fso2f", "solution"]
+
+[tasks.servers]
+description = "Run exercise 00 and the unlocked exercises that compile on http://localhost:40NN/graphql (NN = exercise), for Postman"
+dependencies = ["db"]
+command = "cargo"
+args = ["fso2f", "servers"]
+
+[tasks.db]
+description = "Start postgres if not running (internal: used as a dependency)"
+private = true
+command = "cargo"
+args = ["fso2f", "db"]
+
+# Local Federation
+
+[tasks.export-schemas]
+description = "Export GraphQL schemas of all the unlocked exercises"
+command = "cargo"
+args = ["fso2f", "export-schemas"]
+
+[tasks.wgc-build-router]
+description = "Build WunderGraph router configuration"
+command = "cargo"
+args = ["fso2f", "wgc-build-router"]
+
+[tasks.wgc-build-router-feature-flag]
+description = "Build the local router configuration with the flag-customers feature flag (ex10)"
+command = "cargo"
+args = ["fso2f", "wgc-build-router-feature-flag"]
+
+[tasks.local]
+description = "Run all subgraphs locally with local router"
+dependencies = ["db"]
+command = "cargo"
+args = ["fso2f", "local"]
+
+[tasks.local-feature-flag]
+description = "Run the ex10 subgraphs with a local router that knows the flag-customers feature flag"
+dependencies = ["db"]
+command = "cargo"
+args = ["fso2f", "local-feature-flag"]
+
+[tasks.federation-down]
+description = "Stop subgraphs and routers (postgres stays up)"
+command = "cargo"
+args = ["fso2f", "federation-down"]
+
+[tasks.supergraph]
+description = "Generate schemas/13_supergraph.graphql from the 09 subgraphs if missing"
+command = "cargo"
+args = ["fso2f", "supergraph"]
+
+# WunderGraph Federation
+
+# The runner installs wgc on its own before every command that needs it.
+[tasks.wgc-install]
+description = "Install the WunderGraph CLI (wgc) if it is missing"
+command = "cargo"
+args = ["fso2f", "wgc-install"]
+
+[tasks.federated-graph-create]
+description = "Create the federated graph"
+command = "cargo"
+args = [
+    "fso2f",
+    "wgc",
+    "federated-graph",
+    "create",
+    "fso2f",
+    "--routing-url",
+    "http://localhost:5000/graphql",
+]
+
+[tasks.router-token-create]
+description = "Create a router token"
+command = "cargo"
+args = ["fso2f", "router-token-create"]
+
+[tasks.subgraph-publish-products]
+description = "Publish products subgraph"
+dependencies = ["export-schemas"]
+command = "cargo"
+args = [
+    "fso2f",
+    "wgc",
+    "subgraph",
+    "publish",
+    "products",
+    "--routing-url",
+    "http://products-subgraph:3001/graphql",
+    "--schema",
+    "schemas/10_products.graphql",
+]
+
+[tasks.control-plane]
+description = "Run all subgraphs local with cloud control plane"
+dependencies = ["db"]
+command = "cargo"
+args = ["fso2f", "control-plane"]
+
+[tasks.subgraph-publish-orders]
+description = "Publish orders subgraph"
+command = "cargo"
+args = [
+    "fso2f",
+    "wgc",
+    "subgraph",
+    "publish",
+    "orders",
+    "--routing-url",
+    "http://orders-subgraph:3002/graphql",
+    "--schema",
+    "schemas/10_orders.graphql",
+]
+
+[tasks.subgraph-publish-fake-customers]
+description = "Publish customers fake subgraph"
+command = "cargo"
+args = [
+    "fso2f",
+    "wgc",
+    "subgraph",
+    "publish",
+    "customers",
+    "--routing-url",
+    "http://not-existing-url/graphql",
+    "--schema",
+    "schemas/10_fake_customers.graphql",
+]
+
+[tasks.subgraph-publish-strangler-customers]
+description = "Publish strangler customers subgraph"
+command = "cargo"
+args = [
+    "fso2f",
+    "wgc",
+    "feature-subgraph",
+    "publish",
+    "strangler-customers",
+    "--routing-url",
+    "http://customers-subgraph:3003/graphql",
+    "--schema",
+    "schemas/10_customers.graphql",
+    "--subgraph",
+    "customers",
+]
+
+[tasks.feature-flag-create]
+description = "Create the feature flag for customers"
+command = "cargo"
+args = ["fso2f", "feature-flag-create"]
+
+[tasks.feature-flag-disable]
+description = "Disable the customers feature flag"
+command = "cargo"
+args = [
+    "fso2f",
+    "wgc",
+    "feature-flag",
+    "disable",
+    "flag-customers",
+]
+
+[tasks.feature-flag-enable]
+description = "Enable the customers feature flag"
+command = "cargo"
+args = [
+    "fso2f",
+    "wgc",
+    "feature-flag",
+    "enable",
+    "flag-customers",
+]
+
+[tasks.promote-customers]
+description = "Promote customers subgraph to base"
+command = "cargo"
+args = ["fso2f", "promote-customers"]
+
+[tasks.federation-reset]
+description = "Delete all the resource created"
+command = "cargo"
+args = ["fso2f", "federation-reset"]
+
+# Help
+
+[tasks.help]
+description = "Show available tasks"
+command = "cargo"
+args = ["fso2f", "help"]

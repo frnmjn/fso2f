@@ -1,0 +1,21 @@
+$kind: graphql-request
+name: '01 - simple object'
+url: "{{ex01}}"
+query: |-
+  query ($code: String!, $orderId: ID!) {
+      product (code: $code) {
+          id
+          code
+          description
+      }
+      order (id: $orderId) {
+          id
+          totalAmount
+      }
+  }
+variables: |-
+  {
+    "code": "WIDGET-001",
+    "orderId": "aaaa1111-aa11-4aa1-8aa1-aaaaaaaaaaaa"
+  }
+order: 2000

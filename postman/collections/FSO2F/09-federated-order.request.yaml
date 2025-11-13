@@ -1,0 +1,35 @@
+$kind: graphql-request
+name: '09 - federated order'
+url: "{{ex09}}"
+query: |-
+  query ($orderId: ID!) {
+      order (id: $orderId) {
+          id
+          status
+          totalAmount
+          lines {
+              quantity
+              product {
+                  id
+                  code
+                  description
+                  ... on DangerousProduct {
+                      maxTemperature
+                  }
+                  ... on ExpiringProduct {
+                      expirationDate
+                  }
+              }
+          }
+          customer {
+              id
+              name
+              vat
+          }
+      }
+  }
+variables: |-
+  {
+    "orderId": "aaaa1111-aa11-4aa1-8aa1-aaaaaaaaaaaa"
+  }
+order: 10000

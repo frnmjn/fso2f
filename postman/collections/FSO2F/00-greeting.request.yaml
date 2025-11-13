@@ -1,0 +1,12 @@
+$kind: graphql-request
+name: '00 - greeting'
+url: "{{ex00}}"
+query: |-
+  query ($name: String!) {
+    greeting(name: $name)
+  }
+variables: |-
+  {
+    "name": "RustLab"
+  }
+order: 1000

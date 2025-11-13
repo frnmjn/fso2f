@@ -1,0 +1,35 @@
+query OrderQuery($orderId: ID!) {
+  order(id: $orderId) {
+    id
+    status
+    totalAmount
+    lines {
+      quantity
+      discount
+      product {
+        ... on Product {
+          id
+          code
+          description
+        }
+        ... on DangerousProduct {
+          id
+          code
+          description
+          maxTemperature
+        }
+        ... on ExpiringProduct {
+          id
+          code
+          description
+          expirationDate
+        }
+      }
+    }
+    customer {
+      id
+      name
+      vat
+    }
+  }
+}

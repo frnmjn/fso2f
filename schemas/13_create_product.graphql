@@ -1,0 +1,21 @@
+mutation CreateProductMutation($product: CreateProductKind!) {
+  createProduct(product: $product) {
+    ... on Product {
+      id
+      code
+      description
+    }
+    ... on DangerousProduct {
+      id
+      code
+      description
+      maxTemperature
+    }
+    ... on ExpiringProduct {
+      id
+      code
+      description
+      expirationDate
+    }
+  }
+}

@@ -1,0 +1,24 @@
+# Local alternative to the Cosmo cloud setup of ex10.
+# Subgraph names must match the cloud ones: `@override(from: "orders")` refers to them.
+version: 1
+subgraphs:
+  - name: products
+    routing_url: http://products-subgraph:3001/graphql
+    schema:
+      file: ../10_products.graphql
+  - name: orders
+    routing_url: http://orders-subgraph:3002/graphql
+    schema:
+      file: ../10_orders.graphql
+  - name: customers
+    routing_url: http://not-existing-url/graphql
+    schema:
+      file: ../10_fake_customers.graphql
+feature_flags:
+  - name: flag-customers
+    feature_graphs:
+      - name: strangler-customers
+        subgraph_name: customers
+        routing_url: http://customers-subgraph:3003/graphql
+        schema:
+          file: ../10_customers.graphql

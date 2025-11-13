@@ -1,0 +1,8 @@
+[env]
+# Compile the sqlx query macros against the committed .sqlx cache: no database needed to build.
+# `cargo make sqlx-prepare` overrides it to regenerate the cache.
+SQLX_OFFLINE = "true"
+
+[alias]
+# Workshop runner (runner/), used by the cargo-make tasks: `cargo fso2f help`.
+fso2f = "run --quiet --package fso2f-runner --"
