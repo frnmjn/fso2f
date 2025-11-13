@@ -1,0 +1,16 @@
+[package]
+name = "fso2f-runner"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Cross-platform workshop runner used by the cargo-make tasks"
+
+# Kept apart from the exercises crate so that it builds even when the exercise
+# code does not compile. Run it with `cargo fso2f <command>` (alias in .cargo/config.toml).
+[[bin]]
+name = "fso2f"
+path = "src/main.rs"
+
+[dependencies]
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0"

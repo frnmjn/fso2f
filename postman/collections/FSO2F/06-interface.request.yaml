@@ -1,0 +1,22 @@
+$kind: graphql-request
+name: '06 - interface'
+url: "{{ex06}}"
+query: |-
+  query ($code: String!) {
+      product(code: $code) {
+          id
+          code
+          description
+          ... on DangerousProduct {
+              maxTemperature
+          }
+          ... on ExpiringProduct {
+              expirationDate
+          }
+      }
+  }
+variables: |-
+  {
+    "code": "PISTOL-003"
+  }
+order: 7000

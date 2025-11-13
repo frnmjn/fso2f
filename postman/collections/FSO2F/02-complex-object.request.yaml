@@ -1,0 +1,23 @@
+$kind: graphql-request
+name: '02 - complex object'
+url: "{{ex02}}"
+query: |-
+  query ($orderId: ID!) {
+      order(id: $orderId) {
+          id
+          totalAmount
+          lines {
+              product {
+                  id
+                  code
+                  description
+              }
+              quantity
+          }
+      }
+  }
+variables: |-
+  {
+    "orderId": "aaaa1111-aa11-4aa1-8aa1-aaaaaaaaaaaa"
+  }
+order: 3000

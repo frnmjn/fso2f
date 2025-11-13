@@ -1,0 +1,82 @@
+use async_graphql::{EmptyMutation, EmptySubscription, Request, Schema, Variables};
+use fso2f::ex04_modeling::schema::Query;
+use serde_json::{Value, json};
+
+const QUERY: &str = r#"
+    query ($orderId: ID!) {
+        order(id: $orderId) {
+            id
+            status
+            customer {
+                id
+                name
+                vat
+            }
+            totalAmount
+            lines {
+                product {
+                    id
+                    code
+                    description
+                }
+                quantity
+                price
+                discount
+            }
+        }
+    }
+"#;
+
+#[tokio::test]
+async fn ex_4() {
+    let schema = Schema::new(Query::default(), EmptyMutation, EmptySubscription);
+
+    let request = Request::new(QUERY).variables(Variables::from_json(json!({
+        "orderId": "aaaa1111-aa11-4aa1-8aa1-aaaaaaaaaaaa",
+    })));
+
+    let response = schema.execute(request).await;
+
+    assert!(
+        response.errors.is_empty(),
+        "GraphQL errors: {:?}",
+        response.errors
+    );
+
+    let data: Value = response.data.into_json().unwrap();
+
+    let lines = &data["order"]["lines"];
+    assert!(lines.is_array());
+    assert_eq!(lines.as_array().unwrap().len(), 2);
+
+    let product = &lines[0]["product"];
+    assert!(product["id"].is_string());
+    assert_eq!(product["code"], "WIDGET-001");
+    assert_eq!(product["description"], "Widget");
+    assert_eq!(lines[0]["quantity"], 5);
+    assert_eq!(lines[0]["price"]["amount"], 12.5);
+    assert_eq!(lines[0]["price"]["currency"], "EUR");
+    assert_eq!(lines[0]["discount"]["amount"], 2.0);
+    assert_eq!(lines[0]["discount"]["currency"], "EUR");
+
+    let product = &lines[1]["product"];
+    assert!(product["id"].is_string());
+    assert_eq!(product["code"], "PISTOL-003");
+    assert_eq!(product["description"], "Pistol");
+    assert_eq!(lines[1]["quantity"], 10);
+    assert_eq!(lines[1]["price"]["amount"], 7.5);
+    assert_eq!(lines[1]["price"]["currency"], "EUR");
+    assert!(lines[1]["discount"].is_null());
+
+    let order = &data["order"];
+    assert_eq!(order["id"], "aaaa1111-aa11-4aa1-8aa1-aaaaaaaaaaaa");
+    assert_eq!(order["status"], "CONFIRMED");
+    assert_eq!(
+        order["customer"]["id"],
+        "11111111-1111-4111-8111-111111111111"
+    );
+    assert_eq!(order["customer"]["name"], "Acme Srl (From Order)");
+    assert_eq!(order["customer"]["vat"], "IT01234567890");
+    assert_eq!(order["totalAmount"]["amount"], 150.0);
+    assert_eq!(order["totalAmount"]["currency"], "EUR");
+}

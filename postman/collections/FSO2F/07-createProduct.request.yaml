@@ -1,0 +1,19 @@
+$kind: graphql-request
+name: '07 - createProduct'
+url: "{{ex07}}"
+query: |-
+  mutation ($product: CreateProduct!) {
+      createProduct (product: $product) {
+          id
+          code
+          description
+      }
+  }
+variables: |-
+  {
+    "product": {
+      "code": "BROCCOLI-101",
+      "description": "Broccoli"
+    }
+  }
+order: 8000

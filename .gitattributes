@@ -1,0 +1,3 @@
+# The repository is mounted into Linux containers and the scripts run in bash:
+# keep LF line endings even on Windows checkouts.
+* text=auto eol=lf

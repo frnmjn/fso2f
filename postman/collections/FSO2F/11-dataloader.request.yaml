@@ -1,0 +1,39 @@
+$kind: graphql-request
+name: '11 - dataloader'
+url: "{{ex11}}"
+query: |-
+  query ($orderId: ID!) {
+      order(id: $orderId) {
+          id
+          status
+          customer {
+              id
+              name
+              vat
+          }
+          totalAmount
+          lines {
+              product {
+                  ... on Product {
+                      id
+                      code
+                      description
+                  }
+                  ... on DangerousProduct {
+                      id
+                      code
+                      description
+                      maxTemperature
+                  }
+              }
+              quantity
+              price
+              discount
+          }
+      }
+  }
+variables: |-
+  {
+    "orderId": "aaaa1111-aa11-4aa1-8aa1-aaaaaaaaaaaa"
+  }
+order: 12000
