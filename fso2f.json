@@ -1,0 +1,69 @@
+{
+  "exercises": [
+    {
+      "name": "01",
+      "instructions": "Create a Query that returns a product (id, code, description) and a Query that returns an order (id, totalAmount). Use #[SimpleObject].\n\n📚 https://async-graphql.github.io/async-graphql/en/define_simple_object.html\n\nMake the test ex01 pass!\n\n🧪 tests/ex01_simple_object.rs",
+      "test": "ex01_simple_object"
+    },
+    {
+      "name": "02",
+      "instructions": "Add the OrderLine simple object and a custom resolver for Order.lines. Use #[ComplexObject].\n\n📚 https://async-graphql.github.io/async-graphql/en/define_simple_object.html#user-defined-resolvers\n\nMake the test ex02 pass!\n\n🧪 tests/ex02_complex_object.rs",
+      "test": "ex02_complex_object"
+    },
+    {
+      "name": "03",
+      "instructions": "We want split the 2 bounded contexts. \n\nExpose both product and order queries using #[MergedObject].\n\n📚 https://async-graphql.github.io/async-graphql/en/merging_objects.html\n\n⭐ Bonus point: extract each domain (products, orders) into its own file.\n\nMake the test ex03 pass!\n\n🧪 tests/ex03_merged_object.rs",
+      "test": "ex03_merged_object"
+    },
+    {
+      "name": "04",
+      "instructions": "Enrich the domain model:\n\nAdd a status field as an Enum to Order.\n\nAdd a Customer field (SimpleObject with id/name/vat).\n\nAdd a price field to order lines. It is a scalar type (amount + currency), and also a discount field of the same money type, but optional.\n\n📚 https://async-graphql.github.io/async-graphql/en/define_enum.html\n📚 https://async-graphql.github.io/async-graphql/en/custom_scalars.html\n\nMake the test ex04 pass!\n\n🧪 tests/ex04_modeling.rs",
+      "test": "ex04_modeling"
+    },
+    {
+      "name": "05",
+      "instructions": "Change the Product type to return a Union of Products: \n\nStandard Product\n\nDangerousProduct (with maxTemperature)\n\nExpiringProduct (with expirationDate).\n\n📚 https://async-graphql.github.io/async-graphql/en/define_union.html\n\nMake the test ex05 pass!\n\n🧪 tests/ex05_union.rs",
+      "test": "ex05_union"
+    },
+    {
+      "name": "06",
+      "instructions": "There is a lot of duplication into the query.\n\nPut the common fields (id, code, description) into an Interface.\n\n📚 https://async-graphql.github.io/async-graphql/en/define_interface.html\n\nMake the test ex06 pass!\n\n🧪 tests/ex06_interface.rs",
+      "test": "ex06_interface"
+    },
+    {
+      "name": "07",
+      "instructions": "Let's create a new product.\n\nAdd a createProduct mutation using #[InputObject].\n\nPersist the product to the database and return the created Product. \nAll the db statements (queries) are already in src/db.\n\nRefactor the whole schema to remove the struct creation (with new) and replace it with the database operations.\n\n📚 https://async-graphql.github.io/async-graphql/en/define_input_object.html\n\nMake the test ex07 pass!\n\n🧪 tests/ex07_mutation.rs",
+      "test": "ex07_mutation"
+    },
+    {
+      "name": "08",
+      "instructions": "Change the mutation input to be a #[OneofObject] (CreateProductKind).\n\nAccepting one of: product, dangerousProduct, or expiringProduct.\n\n📚 https://async-graphql.github.io/async-graphql/en/define_one_of_object.html\n\nMake the test ex08 pass!\n\n🧪 tests/ex08_one_of.rs",
+      "test": "ex08_one_of"
+    },
+    {
+      "name": "09",
+      "instructions": "Split into two federated subgraphs: products (port 3001) and orders (port 3002).\n\nOrders references ProductKind via @interfaceObject. \n\nUse `cargo make local` to run with the router on port 5000.\n\n📚 https://async-graphql.github.io/async-graphql/en/apollo_federation.html\n\nMake the test ex09 pass!\n\n🧪 tests/ex09_federation.rs",
+      "test": "ex09_federation"
+    },
+    {
+      "name": "10",
+      "instructions": "Add a customers subgraph (port 3003) behind a feature flag that overrides the customer name from the orders subgraph using @override. \n\nFollow the federation part of the cargo make help.\n\n📚 https://async-graphql.github.io/async-graphql/en/apollo_federation.html\n\nMake the test ex10 pass!\n\n🧪 tests/ex10_feature_subgraph.rs",
+      "test": "ex10_feature_subgraph"
+    },
+    {
+      "name": "11",
+      "instructions": "Every OrderLine resolves its product with its own query: an order with N lines costs N queries (N+1 problem).\n\nAdd a ProductLoader (DataLoader) that collects the product ids of the request and loads them with a single query. Add the batch function to the db folder.\n\nOrderLine.product must go through the loader.\n\n📚 https://async-graphql.github.io/async-graphql/en/dataloader.html\n\nMake the test ex11 pass!\n\n🧪 tests/ex11_dataloader.rs",
+      "test": "ex11_dataloader"
+    },
+    {
+      "name": "12",
+      "instructions": "Apply DataLoader to the products subgraph of ex09.\n\nThe router sends one _entities call with many representations, but async-graphql invokes the entity resolvers once per representation: N representations cost N queries.\n\nMake every entity resolver go through a ProductLoader so that they are resolved by a single query.\n\nThe key insight: federation's network batching is not database batching. You need a DataLoader inside each subgraph.\n\n📚 https://async-graphql.github.io/async-graphql/en/dataloader.html\n\nMake the test ex12 pass!\n\n🧪 tests/ex12_dataloader_federated.rs",
+      "test": "ex12_dataloader_federated"
+    },
+    {
+      "name": "13",
+      "instructions": "Query the ex09 federated graph from a typed Rust client using cynic.\n\nThe supergraph schema is in schemas/13_supergraph.graphql (generate it with `cargo make supergraph` if missing) and is registered in build.rs.\n\nImplement fetch_order (query) and create_product (mutation with a @oneOf input) in src/ex13_cynic.\n\nDon't write the structs by hand: generate them from schemas/13_order.graphql (order query, from tests/ex09_federation.rs) and schemas/13_create_product.graphql (createProduct mutation, from tests/ex08_one_of.rs):\n\n- Web: https://generator.cynic-rs.dev (upload schemas/13_supergraph.graphql, paste the query)\n- CLI:\n  cargo install --locked cynic-cli\n  cynic querygen --schema schemas/13_supergraph.graphql --query schemas/13_order.graphql\n  cynic querygen --schema schemas/13_supergraph.graphql --query schemas/13_create_product.graphql\n\nThen adapt the generated code: Money is an object scalar ({amount, currency}), DateTime maps to chrono::DateTime<Utc> (use impl_scalar!), and the type names must match the ones used by the test.\n\nRun `cargo make local` first.\n\n📚 https://cynic-rs.dev/quickstart.html\n\nMake the test ex13 pass!\n\n🧪 tests/ex13_cynic.rs",
+      "test": "ex13_cynic"
+    }
+  ]
+}

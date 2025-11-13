@@ -1,0 +1,58 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT * FROM orders WHERE customer_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "customer_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "customer_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "customer_vat",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "total_amount",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 5,
+        "name": "status",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "3a62cd577fa6bec520f5a9a932bf73a9c32acd960f8b7522520bc0fdd2b30463"
+}
