@@ -9,3 +9,10 @@ serde = { version = "1.0.228", features = ["derive"] }
 tokio = { version = "1.48.0", features = ["full"] }
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
+sqlx = { version = "0.8.6", features = [
+    "uuid",
+    "chrono",
+    "migrate",
+    "postgres",
+    "runtime-tokio",
+] }
