@@ -1,10 +1,15 @@
 use async_graphql::*;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-pub struct QueryRoot;
+#[derive(MergedObject, Default)]
+pub struct QueryRoot(ProductQuery, OrderQuery);
+
+#[derive(Default)]
+struct ProductQuery;
 
 #[Object]
-impl QueryRoot {
+impl ProductQuery {
     async fn product(&self, code: String) -> Product {
         Product {
             id: Uuid::new_v4(),
@@ -28,4 +33,28 @@ impl Product {
     async fn sales_count(&self) -> i32 {
         42
     }
+}
+
+#[derive(Default)]
+struct OrderQuery;
+
+#[derive(Serialize, Deserialize)]
+struct OrderId(Uuid);
+
+scalar!(OrderId);
+
+#[Object]
+impl OrderQuery {
+    async fn order(&self, id: OrderId) -> Order {
+        Order {
+            id,
+            total_amount: 99.99,
+        }
+    }
+}
+
+#[derive(SimpleObject)]
+struct Order {
+    id: OrderId,
+    total_amount: f64,
 }

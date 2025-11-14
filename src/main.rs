@@ -20,7 +20,7 @@ async fn main() -> Result<(), sqlx::Error> {
         .connect("postgres://fso2f:fso2f@localhost/fso2f")
         .await?;
 
-    let schema = Schema::new(QueryRoot, EmptyMutation, EmptySubscription);
+    let schema = Schema::new(QueryRoot::default(), EmptyMutation, EmptySubscription);
 
     // build our application with a route
     let app = Router::new()
