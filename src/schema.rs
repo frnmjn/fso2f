@@ -15,11 +15,17 @@ impl QueryRoot {
 }
 
 #[derive(SimpleObject)]
+#[graphql(complex)]
 struct Product {
     #[graphql(skip)]
     id: Uuid,
-
     code: String,
-
     description: String,
+}
+
+#[ComplexObject]
+impl Product {
+    async fn sales_count(&self) -> i32 {
+        42
+    }
 }
