@@ -1,4 +1,12 @@
-use axum::{Router, extract::State, routing::get};
+use async_graphql::{EmptyMutation, EmptySubscription, Schema, http::GraphiQLSource};
+use async_graphql_axum::GraphQL;
+use axum::{
+    Router,
+    extract::State,
+    response::{Html, IntoResponse},
+    routing::get,
+};
+use fso2f::schema::QueryRoot;
 use sqlx::{Pool, Postgres, postgres::PgPoolOptions};
 
 #[tokio::main]
@@ -12,10 +20,13 @@ async fn main() -> Result<(), sqlx::Error> {
         .connect("postgres://fso2f:fso2f@localhost/fso2f")
         .await?;
 
+    let schema = Schema::new(QueryRoot, EmptyMutation, EmptySubscription);
+
     // build our application with a route
     let app = Router::new()
         // `GET /` goes to `root`
         .route("/", get(root))
+        .route("/graphql", get(graphiql).post_service(GraphQL::new(schema)))
         .with_state(pool.clone());
 
     // run our app with hyper, listening globally on port 3000
@@ -23,6 +34,7 @@ async fn main() -> Result<(), sqlx::Error> {
     axum::serve(listener, app).await.unwrap();
     Ok(())
 }
+
 // basic handler that responds with a static string
 async fn root(State(pool): State<Pool<Postgres>>) -> String {
     let (msg,): (String,) = sqlx::query_as("SELECT 'Hello, World!'")
@@ -30,4 +42,8 @@ async fn root(State(pool): State<Pool<Postgres>>) -> String {
         .await
         .unwrap_or(("Error connecting to database".to_string(),));
     msg
+}
+
+async fn graphiql() -> impl IntoResponse {
+    Html(GraphiQLSource::build().endpoint("/graphql").finish())
 }

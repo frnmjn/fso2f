@@ -16,3 +16,6 @@ sqlx = { version = "0.8.6", features = [
     "postgres",
     "runtime-tokio",
 ] }
+async-graphql-axum = "7.0.17"
+async-graphql = "7.0.17"
+uuid = { version = "1.18.1", features = ["v4"] }
