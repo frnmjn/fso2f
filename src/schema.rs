@@ -71,10 +71,12 @@ impl Order {
             OrderLine {
                 line_number: 10,
                 quantity: 2,
+                discount: Some(5.0),
             },
             OrderLine {
                 line_number: 20,
                 quantity: 5,
+                discount: None,
             },
         ]
     }
@@ -85,6 +87,7 @@ impl Order {
 struct OrderLine {
     line_number: i32,
     quantity: i32,
+    discount: Option<f64>,
 }
 
 #[ComplexObject]
