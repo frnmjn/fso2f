@@ -587,6 +587,7 @@ dependencies = [
  "async-graphql",
  "async-graphql-axum",
  "axum",
+ "rand 0.9.2",
  "serde",
  "sqlx",
  "tokio",
