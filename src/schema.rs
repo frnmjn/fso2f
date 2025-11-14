@@ -52,6 +52,7 @@ impl OrderQuery {
         Order {
             id,
             total_amount: 99.99,
+            status: OrderStatus::Confirmed,
         }
     }
 }
@@ -61,6 +62,15 @@ impl OrderQuery {
 struct Order {
     id: OrderId,
     total_amount: f64,
+    status: OrderStatus,
+}
+
+#[derive(Enum, Copy, Clone, Eq, PartialEq)]
+enum OrderStatus {
+    Draft,
+    Confirmed,
+    #[graphql(name = "Cancelled")]
+    Deleted,
 }
 
 #[ComplexObject]
