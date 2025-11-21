@@ -1,5 +1,6 @@
-use async_graphql::*;
+use async_graphql::{ComplexObject, Enum, Interface, MergedObject, Object, SimpleObject, scalar};
 use serde::{Deserialize, Serialize};
+use sqlx::types::chrono::{DateTime, TimeZone, Utc};
 use uuid::Uuid;
 
 #[derive(MergedObject, Default)]
@@ -12,28 +13,67 @@ struct ProductQuery;
 impl ProductQuery {
     async fn product(&self, code: String) -> Product {
         tracing::info!("Fetching product with code: {}", code);
-        Product {
-            id: Uuid::new_v4(),
-            code,
-            description: "A sample product".to_string(),
+        if code.starts_with("EXP") {
+            return Product::ExpiringProduct(ExpiringProduct {
+                expiration_date: Utc.with_ymd_and_hms(1988, 6, 8, 19, 30, 00).unwrap(),
+            });
         }
+        Product::DangerousProduct(DangerousProduct {
+            max_temperature: 75.0,
+        })
+    }
+}
+
+#[derive(Interface)]
+#[graphql(
+    field(name = "id", ty = "Uuid"),
+    field(name = "code", ty = "String"),
+    field(name = "description", ty = "String")
+)]
+pub enum Product {
+    DangerousProduct(DangerousProduct),
+    ExpiringProduct(ExpiringProduct),
+}
+
+#[derive(SimpleObject)]
+#[graphql(complex)]
+pub struct DangerousProduct {
+    max_temperature: f64,
+}
+
+#[ComplexObject]
+impl DangerousProduct {
+    async fn id(&self) -> Uuid {
+        Uuid::new_v4()
+    }
+
+    async fn code(&self) -> String {
+        format!("DANG-{}", rand::random::<u32>())
+    }
+
+    async fn description(&self) -> String {
+        "A dangerous product".to_string()
     }
 }
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
-struct Product {
-    #[graphql(skip)]
-    id: Uuid,
-    code: String,
-    description: String,
+pub struct ExpiringProduct {
+    expiration_date: DateTime<Utc>,
 }
 
 #[ComplexObject]
-impl Product {
-    async fn sales_count(&self) -> i32 {
-        tracing::info!("Calculating sales count for product code: {}", self.code);
-        42
+impl ExpiringProduct {
+    async fn id(&self) -> Uuid {
+        Uuid::new_v4()
+    }
+
+    async fn code(&self) -> String {
+        format!("EXP-{}", rand::random::<u32>())
+    }
+
+    async fn description(&self) -> String {
+        "An expiring product".to_string()
     }
 }
 
@@ -107,10 +147,13 @@ impl OrderLine {
             "Fetching product for order line number: {}",
             self.line_number
         );
-        Product {
-            id: Uuid::new_v4(),
-            code: format!("PROD-{}", rand::random::<u32>()),
-            description: "A sample product".to_string(),
+        if self.line_number % 2 == 0 {
+            return Product::ExpiringProduct(ExpiringProduct {
+                expiration_date: Utc.with_ymd_and_hms(1988, 6, 8, 19, 30, 00).unwrap(),
+            });
         }
+        Product::DangerousProduct(DangerousProduct {
+            max_temperature: 100.0,
+        })
     }
 }
