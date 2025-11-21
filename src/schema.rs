@@ -1,4 +1,7 @@
-use async_graphql::{ComplexObject, Enum, Interface, MergedObject, Object, SimpleObject, scalar};
+use async_graphql::{
+    ComplexObject, Enum, InputObject, Interface, MergedObject, Object, OneofObject, SimpleObject,
+    scalar,
+};
 use serde::{Deserialize, Serialize};
 use sqlx::types::chrono::{DateTime, TimeZone, Utc};
 use uuid::Uuid;
@@ -24,19 +27,20 @@ impl ProductQuery {
     }
 }
 
-#[derive(Interface)]
+#[derive(Interface, OneofObject)]
 #[graphql(
     field(name = "id", ty = "Uuid"),
     field(name = "code", ty = "String"),
-    field(name = "description", ty = "String")
+    field(name = "description", ty = "String"),
+    input_name = "ProductInput"
 )]
 pub enum Product {
     DangerousProduct(DangerousProduct),
     ExpiringProduct(ExpiringProduct),
 }
 
-#[derive(SimpleObject)]
-#[graphql(complex)]
+#[derive(SimpleObject, InputObject)]
+#[graphql(complex, input_name = "DangerousProductInput")]
 pub struct DangerousProduct {
     max_temperature: f64,
 }
@@ -56,8 +60,8 @@ impl DangerousProduct {
     }
 }
 
-#[derive(SimpleObject)]
-#[graphql(complex)]
+#[derive(SimpleObject, InputObject)]
+#[graphql(complex, input_name = "ExpiringProductInput")]
 pub struct ExpiringProduct {
     expiration_date: DateTime<Utc>,
 }
@@ -91,6 +95,11 @@ impl OrderQuery {
         tracing::info!("Fetching order with id: {:?}", id.0);
         Order {
             id,
+            customer: Customer {
+                id: Uuid::new_v4(),
+                name: "John Doe".to_string(),
+                vat: "VAT123456".to_string(),
+            },
             total_amount: 99.99,
             status: OrderStatus::Confirmed,
         }
@@ -101,8 +110,18 @@ impl OrderQuery {
 #[graphql(complex)]
 struct Order {
     id: OrderId,
+    customer: Customer,
     total_amount: f64,
     status: OrderStatus,
+}
+
+#[derive(SimpleObject, InputObject)]
+#[graphql(input_name = "CustomerInput")]
+pub struct Customer {
+    #[graphql(skip)]
+    id: Uuid,
+    name: String,
+    vat: String,
 }
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
@@ -156,4 +175,39 @@ impl OrderLine {
             max_temperature: 100.0,
         })
     }
+}
+
+#[derive(MergedObject, Default)]
+pub struct MutationRoot(OrderMutation);
+
+#[derive(Default)]
+struct OrderMutation;
+
+#[Object]
+impl OrderMutation {
+    async fn create_order(&self, order: CreateOrder) -> Order {
+        tracing::info!("Creating order for customer vat: {}", order.customer.vat);
+        Order {
+            id: OrderId(Uuid::new_v4()),
+            customer: Customer {
+                id: Uuid::new_v4(),
+                name: "New Customer".to_string(),
+                vat: "VAT123456".to_string(),
+            },
+            total_amount: 0.0,
+            status: OrderStatus::Draft,
+        }
+    }
+}
+
+#[derive(InputObject)]
+pub struct CreateOrder {
+    pub customer: Customer,
+    pub items: Vec<CreateOrderLine>,
+}
+
+#[derive(InputObject)]
+pub struct CreateOrderLine {
+    pub product: Product,
+    pub quantity: i32,
 }
