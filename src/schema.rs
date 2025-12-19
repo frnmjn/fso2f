@@ -1,9 +1,12 @@
+use std::time::Duration;
+
 use async_graphql::{
     ComplexObject, Enum, InputObject, Interface, MergedObject, Object, OneofObject, SimpleObject,
-    scalar,
+    Subscription, scalar,
 };
 use serde::{Deserialize, Serialize};
 use sqlx::types::chrono::{DateTime, TimeZone, Utc};
+use tokio_stream::{Stream, StreamExt};
 use uuid::Uuid;
 
 #[derive(MergedObject, Default)]
@@ -210,4 +213,35 @@ pub struct CreateOrder {
 pub struct CreateOrderLine {
     pub product: Product,
     pub quantity: i32,
+}
+
+#[derive(Default)]
+pub struct SubscriptionRoot;
+
+#[Subscription]
+impl SubscriptionRoot {
+    async fn new_products(
+        &self,
+        #[graphql(default = 2)] interval: u64,
+    ) -> impl Stream<Item = Vec<Product>> {
+        tokio_stream::wrappers::IntervalStream::new(tokio::time::interval(Duration::from_secs(
+            interval,
+        )))
+        .map(move |_| {
+            let new_product_added = rand::random::<u8>() % 3 + 1;
+            let mut products = Vec::new();
+            for i in 0..new_product_added {
+                if i % 2 == 0 {
+                    products.push(Product::ExpiringProduct(ExpiringProduct {
+                        expiration_date: Utc::now() + chrono::Duration::days(i.into()),
+                    }));
+                } else {
+                    products.push(Product::DangerousProduct(DangerousProduct {
+                        max_temperature: 60.0 + (rand::random::<u32>() as f64),
+                    }));
+                }
+            }
+            products
+        })
+    }
 }

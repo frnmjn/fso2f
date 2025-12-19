@@ -1,12 +1,12 @@
-use async_graphql::{EmptySubscription, Schema, http::GraphiQLSource};
-use async_graphql_axum::GraphQL;
+use async_graphql::{Schema, http::GraphiQLSource};
+use async_graphql_axum::{GraphQL, GraphQLSubscription};
 use axum::{
     Router,
     extract::State,
     response::{Html, IntoResponse},
     routing::get,
 };
-use fso2f::schema::{MutationRoot, QueryRoot};
+use fso2f::schema::{MutationRoot, QueryRoot, SubscriptionRoot};
 use sqlx::{Pool, Postgres, postgres::PgPoolOptions};
 
 #[tokio::main]
@@ -23,14 +23,18 @@ async fn main() -> Result<(), sqlx::Error> {
     let schema = Schema::new(
         QueryRoot::default(),
         MutationRoot::default(),
-        EmptySubscription,
+        SubscriptionRoot::default(),
     );
 
     // build our application with a route
     let app = Router::new()
         // `GET /` goes to `root`
         .route("/", get(root))
-        .route("/graphql", get(graphiql).post_service(GraphQL::new(schema)))
+        .route(
+            "/graphql",
+            get(graphiql).post_service(GraphQL::new(schema.clone())),
+        )
+        .route_service("/ws", GraphQLSubscription::new(schema.clone()))
         .with_state(pool.clone());
 
     // run our app with hyper, listening globally on port 3000
