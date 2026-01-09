@@ -16,5 +16,41 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data
 
+  products-subgraph:
+    image: rust:1.84
+    working_dir: /app
+    command: sh -c "rustup default nightly && cargo run --bin products-subgraph"
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgres://fso2f:fso2f@postgres:5432/fso2f
+      RUST_LOG: info
+    volumes:
+      - .:/app
+      - cargo-cache:/usr/local/cargo/registry
+      - target-cache:/app/target
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  orders-subgraph:
+    image: rust:1.84
+    working_dir: /app
+    command: sh -c "rustup default nightly && cargo run --bin orders-subgraph"
+    ports:
+      - "3002:3002"
+    environment:
+      DATABASE_URL: postgres://fso2f:fso2f@postgres:5432/fso2f
+      RUST_LOG: info
+    volumes:
+      - .:/app
+      - cargo-cache:/usr/local/cargo/registry
+      - target-cache:/app/target
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   postgres: {}
+  cargo-cache: {}
+  target-cache: {}

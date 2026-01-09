@@ -20,10 +20,12 @@ impl ProductQuery {
         tracing::info!("Fetching product with code: {}", code);
         if code.starts_with("EXP") {
             return Product::ExpiringProduct(ExpiringProduct {
+                inner_code: code,
                 expiration_date: Utc.with_ymd_and_hms(1988, 6, 8, 19, 30, 00).unwrap(),
             });
         }
         Product::DangerousProduct(DangerousProduct {
+            inner_code: code,
             max_temperature: 75.0,
         })
     }
@@ -44,6 +46,7 @@ pub enum Product {
 #[derive(SimpleObject, InputObject)]
 #[graphql(complex, input_name = "DangerousProductInput")]
 pub struct DangerousProduct {
+    inner_code: String,
     pub max_temperature: f64,
 }
 
@@ -54,7 +57,7 @@ impl DangerousProduct {
     }
 
     async fn code(&self) -> String {
-        format!("DANG-{}", rand::random::<u32>())
+        self.inner_code.clone()
     }
 
     async fn description(&self) -> String {
@@ -65,6 +68,7 @@ impl DangerousProduct {
 #[derive(SimpleObject, InputObject)]
 #[graphql(complex, input_name = "ExpiringProductInput")]
 pub struct ExpiringProduct {
+    inner_code: String,
     pub expiration_date: DateTime<Utc>,
 }
 
@@ -75,7 +79,7 @@ impl ExpiringProduct {
     }
 
     async fn code(&self) -> String {
-        format!("EXP-{}", rand::random::<u32>())
+        self.inner_code.clone()
     }
 
     async fn description(&self) -> String {
@@ -104,10 +108,12 @@ impl SubscriptionRoot {
             for i in 0..new_product_added {
                 if i % 2 == 0 {
                     products.push(Product::ExpiringProduct(ExpiringProduct {
+                        inner_code: format!("EXP-{}", rand::random::<u32>()),
                         expiration_date: Utc::now() + chrono::Duration::days(i.into()),
                     }));
                 } else {
                     products.push(Product::DangerousProduct(DangerousProduct {
+                        inner_code: format!("DANG-{}", rand::random::<u32>()),
                         max_temperature: 60.0 + (rand::random::<u32>() as f64),
                     }));
                 }

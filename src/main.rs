@@ -15,9 +15,11 @@ async fn main() -> Result<(), sqlx::Error> {
     tracing_subscriber::fmt::init();
 
     // create a db connection pool
+    let database_url = std::env::var("DATABASE_URL")
+        .unwrap_or_else(|_| "postgres://fso2f:fso2f@localhost/fso2f".to_string());
     let pool = PgPoolOptions::new()
         .max_connections(5)
-        .connect("postgres://fso2f:fso2f@localhost/fso2f")
+        .connect(&database_url)
         .await?;
 
     let schema = Schema::new(
