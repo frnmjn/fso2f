@@ -50,6 +50,18 @@ services:
       postgres:
         condition: service_healthy
 
+  router:
+    image: ghcr.io/wundergraph/cosmo/router
+    environment:
+      LOG_LEVEL: info
+      CORS_ALLOW_CREDENTIALS: true
+      LISTEN_ADDR: '0.0.0.0:5000'
+    volumes:
+      - ./schemas/federation/router.json:/router.json
+      - ./schemas/federation/config.yaml:/config.yaml
+    ports:
+      - '5000:5000'
+
 volumes:
   postgres: {}
   cargo-cache: {}
