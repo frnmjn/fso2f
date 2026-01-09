@@ -3,6 +3,18 @@ name = "fso2f"
 version = "0.1.0"
 edition = "2024"
 
+[[bin]]
+name = "products-subgraph"
+path = "src/bin/products-subgraph.rs"
+
+[[bin]]
+name = "orders-subgraph"
+path = "src/bin/orders-subgraph.rs"
+
+[[bin]]
+name = "export-schemas"
+path = "src/bin/export-schemas.rs"
+
 [dependencies]
 axum = "0.8.6"
 serde = { version = "1.0.228", features = ["derive"] }
