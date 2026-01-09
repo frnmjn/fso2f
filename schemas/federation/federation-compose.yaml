@@ -1,0 +1,10 @@
+version: 1
+subgraphs:
+  - name: subgraph-products
+    routing_url: http://products-subgraph:3001/graphql
+    schema:
+      file: ../products.graphql
+  - name: subgraph-orders
+    routing_url: http://orders-subgraph:3002/graphql
+    schema:
+      file: ../orders.graphql
