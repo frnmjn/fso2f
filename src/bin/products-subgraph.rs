@@ -6,7 +6,7 @@ use axum::{
     response::{Html, IntoResponse},
     routing::get,
 };
-use fso2f::products::QueryRoot;
+use fso2f::products::Query;
 use sqlx::{Pool, Postgres, postgres::PgPoolOptions};
 
 #[tokio::main]
@@ -22,7 +22,7 @@ async fn main() -> Result<(), sqlx::Error> {
         .connect(&database_url)
         .await?;
 
-    let schema = Schema::new(QueryRoot::default(), EmptyMutation, EmptySubscription);
+    let schema = Schema::new(Query::default(), EmptyMutation, EmptySubscription);
 
     // build our application with a route
     let app = Router::new()

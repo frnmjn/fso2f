@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(MergedObject, Default)]
-pub struct QueryRoot(OrderQuery);
+pub struct Query(OrderQuery);
 
 #[derive(Default)]
 pub struct OrderQuery;
@@ -92,7 +92,7 @@ pub struct OrderLine {
 }
 
 #[derive(MergedObject, Default)]
-pub struct MutationRoot(OrderMutation);
+pub struct Mutation(OrderMutation);
 
 #[derive(Default)]
 pub struct OrderMutation;
@@ -127,7 +127,7 @@ pub struct CreateOrderLine {
 }
 
 #[derive(Default)]
-pub struct SubscriptionRoot;
+pub struct Subscription;
 
 #[derive(SimpleObject)]
 #[graphql(shareable)]

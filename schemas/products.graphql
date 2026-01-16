@@ -1,4 +1,4 @@
-type QueryRoot {
+type Query {
 	product(code: String!): SimpleProduct!
 }
 

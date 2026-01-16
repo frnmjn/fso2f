@@ -9,7 +9,7 @@ use tokio_stream::{Stream, StreamExt};
 use uuid::Uuid;
 
 #[derive(MergedObject, Default)]
-pub struct QueryRoot(ProductQuery);
+pub struct Query(ProductQuery);
 
 #[derive(Default)]
 pub struct ProductQuery;
@@ -122,13 +122,13 @@ pub struct SimpleProduct {
 // }
 
 #[derive(Default)]
-pub struct MutationRoot;
+pub struct Mutation;
 
 #[derive(Default)]
-pub struct SubscriptionRoot;
+pub struct Subscription;
 
 // #[Subscription]
-// impl SubscriptionRoot {
+// impl Subscription {
 //     async fn new_products(
 //         &self,
 //         #[graphql(default = 2)] interval: u64,

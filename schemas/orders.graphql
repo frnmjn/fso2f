@@ -18,7 +18,7 @@ input CustomerInput {
 	vat: String!
 }
 
-type MutationRoot {
+type Mutation {
 	createOrder(order: CreateOrder!): Order!
 }
 
@@ -45,11 +45,11 @@ enum OrderStatus {
 	Cancelled
 }
 
-type QueryRoot {
+type Query {
 	order(id: OrderId!): Order!
 }
 
-type SimpleProduct {
+type SimpleProduct @shareable {
 	id: ID!
 }
 
@@ -77,7 +77,7 @@ directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 Provides a scalar specification URL for specifying the behavior of custom scalar types.
 """
 directive @specifiedBy(url: String!) on SCALAR
-schema {
-	query: QueryRoot
-	mutation: MutationRoot
-}
+extend schema @link(
+	url: "https://specs.apollo.dev/federation/v2.5",
+	import: ["@key", "@tag", "@shareable", "@inaccessible", "@override", "@external", "@provides", "@requires", "@composeDirective", "@interfaceObject", "@requiresScopes"]
+)
