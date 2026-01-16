@@ -1,4 +1,6 @@
-use async_graphql::{ComplexObject, Enum, InputObject, MergedObject, Object, SimpleObject, scalar};
+use async_graphql::{
+    ComplexObject, Enum, ID, InputObject, Interface, MergedObject, Object, SimpleObject, scalar,
+};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -65,13 +67,17 @@ impl Order {
                 line_number: 10,
                 quantity: 2,
                 discount: Some(5.0),
-                product_id: Uuid::new_v4(),
+                product: SimpleProduct {
+                    id: ID::from(Uuid::new_v4().to_string()),
+                },
             },
             OrderLine {
                 line_number: 20,
                 quantity: 5,
                 discount: None,
-                product_id: Uuid::new_v4(),
+                product: SimpleProduct {
+                    id: ID::from(Uuid::new_v4().to_string()),
+                },
             },
         ]
     }
@@ -82,7 +88,7 @@ pub struct OrderLine {
     pub line_number: i32,
     pub quantity: i32,
     pub discount: Option<f64>,
-    pub product_id: Uuid,
+    pub product: SimpleProduct,
 }
 
 #[derive(MergedObject, Default)]
@@ -122,3 +128,33 @@ pub struct CreateOrderLine {
 
 #[derive(Default)]
 pub struct SubscriptionRoot;
+
+#[derive(SimpleObject)]
+#[graphql(shareable)]
+pub struct SimpleProduct {
+    pub id: ID,
+}
+// #[derive(Interface)]
+// #[graphql(field(name = "id", ty = "ID"))]
+// pub enum Product {
+//     DangerousProduct(DangerousProduct),
+//     ExpiringProduct(ExpiringProduct),
+// }
+
+// pub struct DangerousProduct {}
+
+// #[Object]
+// impl DangerousProduct {
+//     async fn id(&self) -> ID {
+//         ID::from(Uuid::new_v4().to_string())
+//     }
+// }
+
+// pub struct ExpiringProduct {}
+
+// #[Object]
+// impl ExpiringProduct {
+//     async fn id(&self) -> ID {
+//         ID::from(Uuid::new_v4().to_string())
+//     }
+// }

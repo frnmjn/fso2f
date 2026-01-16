@@ -1,0 +1,142 @@
+[config]
+default_to_workspace = false
+
+[tasks.install]
+description = "Install cargo-make if not already installed"
+script = '''
+cargo install cargo-make
+'''
+
+[tasks.dev-products]
+description = "Run products subgraph in development mode"
+command = "cargo"
+args = ["run", "--bin", "products-subgraph"]
+
+[tasks.dev-orders]
+description = "Run orders subgraph in development mode"
+command = "cargo"
+args = ["run", "--bin", "orders-subgraph"]
+
+[tasks.build-products]
+description = "Build products subgraph"
+command = "cargo"
+args = ["build", "--release", "--bin", "products-subgraph"]
+
+[tasks.build-orders]
+description = "Build orders subgraph"
+command = "cargo"
+args = ["build", "--release", "--bin", "orders-subgraph"]
+
+[tasks.build-all]
+description = "Build all subgraphs"
+dependencies = ["build-products", "build-orders"]
+
+[tasks.export-schemas]
+description = "Export GraphQL schemas to files"
+command = "cargo"
+args = ["run", "--bin", "export-schemas"]
+
+[tasks.docker-build]
+description = "Build Docker images for both subgraphs"
+script = '''
+docker compose build
+'''
+
+[tasks.docker-build-no-cache]
+description = "Build Docker images without cache"
+script = '''
+docker compose build --no-cache
+'''
+
+[tasks.docker-up]
+description = "Start all services in detached mode"
+script = '''
+docker compose up -d
+'''
+
+[tasks.docker-down]
+description = "Stop all Docker Compose services"
+script = '''
+docker compose down
+'''
+
+[tasks.docker-restart-products]
+description = "Restart products subgraph container"
+script = '''
+docker compose restart products-subgraph
+'''
+
+[tasks.docker-restart-orders]
+description = "Restart orders subgraph container"
+script = '''
+docker compose restart orders-subgraph
+'''
+
+[tasks.clean]
+description = "Clean build artifacts"
+command = "cargo"
+args = ["clean"]
+
+[tasks.fmt]
+description = "Format code"
+command = "cargo"
+args = ["fmt"]
+
+[tasks.check]
+description = "Check code without building"
+command = "cargo"
+args = ["check", "--all-targets"]
+
+[tasks.clippy]
+description = "Run clippy lints"
+command = "cargo"
+args = ["clippy", "--all-targets", "--", "-D", "warnings"]
+
+[tasks.test]
+description = "Run tests"
+command = "cargo"
+args = ["test"]
+
+[tasks.setup]
+description = "Setup project (install dependencies, build schemas)"
+dependencies = ["export-schemas"]
+
+[tasks.wgc-install]
+description = "Install wondergraph "
+script = '''
+npm -g install wgc
+'''
+
+[tasks.wgc-build-router]
+description = "Build WonderGraph router configuration"
+command = "wgc"
+args = [
+    "router",
+    "compose",
+    "-i",
+    "./schemas/federation/federation-compose.yaml",
+    "-o",
+    "./schemas/federation/router.json",
+]
+
+[tasks.dev]
+description = "Run all subgraphs locally (requires PostgreSQL running)"
+dependencies = ["wgc-build-router", "docker-up"]
+
+[tasks.help]
+description = "Show available tasks"
+script = '''
+echo "Available tasks:"
+echo "  cargo make dev-products       - Run products subgraph"
+echo "  cargo make dev-orders         - Run orders subgraph"
+echo "  cargo make build-all          - Build all subgraphs"
+echo "  cargo make export-schemas     - Export GraphQL schemas"
+echo "  cargo make docker-up          - Start with Docker Compose"
+echo "  cargo make docker-down        - Stop Docker Compose"
+echo "  cargo make docker-restart-*   - Restart specific subgraph"
+echo "  cargo make fmt                - Format code"
+echo "  cargo make check              - Check code"
+echo "  cargo make clippy             - Run lints"
+echo "  cargo make test               - Run tests"
+echo "  cargo make help               - Show this help"
+'''

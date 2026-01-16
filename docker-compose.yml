@@ -50,7 +50,7 @@ services:
       postgres:
         condition: service_healthy
 
-  router:
+  wundergraph-router:
     image: ghcr.io/wundergraph/cosmo/router
     environment:
       LOG_LEVEL: info

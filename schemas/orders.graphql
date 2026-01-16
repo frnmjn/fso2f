@@ -36,7 +36,7 @@ type OrderLine {
 	lineNumber: Int!
 	quantity: Int!
 	discount: Float
-	productId: UUID!
+	product: SimpleProduct!
 }
 
 enum OrderStatus {
@@ -47,6 +47,10 @@ enum OrderStatus {
 
 type QueryRoot {
 	order(id: OrderId!): Order!
+}
+
+type SimpleProduct {
+	id: ID!
 }
 
 """
