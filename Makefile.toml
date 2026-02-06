@@ -119,9 +119,21 @@ args = [
     "./schemas/federation/router.json",
 ]
 
+[tasks.export-federated-schema]
+description = "Export federated schema to GraphQL SDL"
+script = '''
+jq -r '.engineConfig.graphqlSchema' schemas/federation/router.json > schemas/federation/federated-schema.graphql
+echo "✅ Federated schema exported to schemas/federation/federated-schema.graphql"
+'''
+
 [tasks.dev]
 description = "Run all subgraphs locally (requires PostgreSQL running)"
-dependencies = ["wgc-build-router", "docker-up"]
+dependencies = [
+    "docker-down",
+    "export-schemas",
+    "wgc-build-router",
+    "docker-up",
+]
 
 [tasks.help]
 description = "Show available tasks"

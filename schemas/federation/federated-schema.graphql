@@ -1,0 +1,62 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  product(code: String!): SimpleProduct!
+  order(id: OrderId!): Order!
+}
+
+type SimpleProduct {
+  id: ID!
+  code: String!
+  description: String!
+}
+
+input CreateOrder {
+  customer: CustomerInput!
+  items: [CreateOrderLine!]!
+}
+
+input CreateOrderLine {
+  productId: ID!
+  quantity: Int!
+}
+
+type Customer {
+  name: String!
+  vat: String!
+}
+
+input CustomerInput {
+  name: String!
+  vat: String!
+}
+
+type Mutation {
+  createOrder(order: CreateOrder!): Order!
+}
+
+type Order {
+  id: OrderId!
+  customer: Customer!
+  totalAmount: Float!
+  status: OrderStatus!
+  lines: [OrderLine!]!
+}
+
+scalar OrderId
+
+type OrderLine {
+  lineNumber: Int!
+  quantity: Int!
+  discount: Float
+  product: SimpleProduct!
+}
+
+enum OrderStatus {
+  DRAFT
+  CONFIRMED
+  Cancelled
+}

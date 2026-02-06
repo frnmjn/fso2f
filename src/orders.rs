@@ -1,5 +1,5 @@
 use async_graphql::{
-    ComplexObject, Enum, ID, InputObject, Interface, MergedObject, Object, SimpleObject, scalar,
+    ComplexObject, Enum, ID, InputObject, MergedObject, Object, SimpleObject, scalar,
 };
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -22,13 +22,18 @@ impl OrderQuery {
         Order {
             id,
             customer: Customer {
-                id: Uuid::new_v4(),
+                id: ID::from(Uuid::new_v4().to_string()),
                 name: "John Doe".to_string(),
                 vat: "VAT123456".to_string(),
             },
             total_amount: 99.99,
             status: OrderStatus::Confirmed,
         }
+    }
+
+    #[graphql(entity)]
+    async fn find_simple_product_by_id(&self, #[graphql(key)] id: ID) -> SimpleProduct {
+        SimpleProduct { id }
     }
 }
 
@@ -45,7 +50,7 @@ pub struct Order {
 #[graphql(input_name = "CustomerInput")]
 pub struct Customer {
     #[graphql(skip)]
-    pub id: Uuid,
+    pub id: ID,
     pub name: String,
     pub vat: String,
 }
@@ -91,6 +96,30 @@ pub struct OrderLine {
     pub product: SimpleProduct,
 }
 
+#[derive(SimpleObject)]
+pub struct SimpleProduct {
+    pub id: ID,
+}
+
+// #[derive(Interface)]
+// #[graphql(field(name = "id", ty = "ID"))]
+// pub enum Product {
+//     DangerousProduct(DangerousProduct),
+//     ExpiringProduct(ExpiringProduct),
+// }
+
+// #[derive(SimpleObject)]
+// #[graphql(shareable)]
+// pub struct DangerousProduct {
+//     pub id: ID,
+// }
+
+// #[derive(SimpleObject)]
+// #[graphql(shareable)]
+// pub struct ExpiringProduct {
+//     pub id: ID,
+// }
+
 #[derive(MergedObject, Default)]
 pub struct Mutation(OrderMutation);
 
@@ -104,7 +133,7 @@ impl OrderMutation {
         Order {
             id: OrderId(Uuid::new_v4()),
             customer: Customer {
-                id: Uuid::new_v4(),
+                id: ID::from(Uuid::new_v4().to_string()),
                 name: "New Customer".to_string(),
                 vat: "VAT123456".to_string(),
             },
@@ -122,39 +151,9 @@ pub struct CreateOrder {
 
 #[derive(InputObject)]
 pub struct CreateOrderLine {
-    pub product_id: Uuid,
+    pub product_id: ID,
     pub quantity: i32,
 }
 
 #[derive(Default)]
 pub struct Subscription;
-
-#[derive(SimpleObject)]
-#[graphql(shareable)]
-pub struct SimpleProduct {
-    pub id: ID,
-}
-// #[derive(Interface)]
-// #[graphql(field(name = "id", ty = "ID"))]
-// pub enum Product {
-//     DangerousProduct(DangerousProduct),
-//     ExpiringProduct(ExpiringProduct),
-// }
-
-// pub struct DangerousProduct {}
-
-// #[Object]
-// impl DangerousProduct {
-//     async fn id(&self) -> ID {
-//         ID::from(Uuid::new_v4().to_string())
-//     }
-// }
-
-// pub struct ExpiringProduct {}
-
-// #[Object]
-// impl ExpiringProduct {
-//     async fn id(&self) -> ID {
-//         ID::from(Uuid::new_v4().to_string())
-//     }
-// }
