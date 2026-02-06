@@ -18,6 +18,7 @@ impl ProductQuery {
             id,
             code: "EX23".to_string(),
             description: "A simple product".to_string(),
+            pippo: "PIPPO".to_string(),
         }
     }
 
@@ -47,6 +48,7 @@ impl ProductQuery {
             id: ID::from(Uuid::new_v4().to_string()),
             code: code.clone(),
             description: format!("Product with code: {}", code),
+            pippo: "PIPPO".to_string(),
         }
     }
 }
@@ -63,10 +65,12 @@ impl ProductQuery {
 // }
 
 #[derive(SimpleObject)]
+#[graphql(shareable)]
 pub struct SimpleProduct {
     pub id: ID,
     pub code: String,
     pub description: String,
+    pub pippo: String,
 }
 
 // #[derive(SimpleObject)]
@@ -113,12 +117,14 @@ impl Subscription {
                         id: ID::from(Uuid::new_v4().to_string()),
                         code: format!("EXP{}", Uuid::new_v4().to_string()),
                         description: "A newly added expiring product".to_string(),
+                        pippo: "PIPPO".to_string(),
                     });
                 } else {
                     products.push(SimpleProduct {
                         id: ID::from(Uuid::new_v4().to_string()),
                         code: format!("DANG{}", Uuid::new_v4().to_string()),
                         description: "A newly added dangerous product".to_string(),
+                        pippo: "PIPPO".to_string(),
                     });
                 }
             }

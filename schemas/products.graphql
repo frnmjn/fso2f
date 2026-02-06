@@ -2,10 +2,11 @@ type Query {
 	product(code: String!): SimpleProduct!
 }
 
-type SimpleProduct @key(fields: "id") {
+type SimpleProduct @key(fields: "id") @shareable {
 	id: ID!
 	code: String!
 	description: String!
+	pippo: String!
 }
 
 """

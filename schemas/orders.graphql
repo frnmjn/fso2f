@@ -49,8 +49,9 @@ type Query {
 	order(id: OrderId!): Order!
 }
 
-type SimpleProduct @key(fields: "id") {
+type SimpleProduct @key(fields: "id") @shareable {
 	id: ID!
+	pippo: String!
 }
 
 """

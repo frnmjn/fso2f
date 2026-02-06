@@ -33,7 +33,10 @@ impl OrderQuery {
 
     #[graphql(entity)]
     async fn find_simple_product_by_id(&self, #[graphql(key)] id: ID) -> SimpleProduct {
-        SimpleProduct { id }
+        SimpleProduct {
+            id,
+            pippo: "PIPPO".to_string(),
+        }
     }
 }
 
@@ -74,6 +77,7 @@ impl Order {
                 discount: Some(5.0),
                 product: SimpleProduct {
                     id: ID::from(Uuid::new_v4().to_string()),
+                    pippo: "PIPPO".to_string(),
                 },
             },
             OrderLine {
@@ -82,6 +86,7 @@ impl Order {
                 discount: None,
                 product: SimpleProduct {
                     id: ID::from(Uuid::new_v4().to_string()),
+                    pippo: "PIPPO".to_string(),
                 },
             },
         ]
@@ -97,8 +102,10 @@ pub struct OrderLine {
 }
 
 #[derive(SimpleObject)]
+#[graphql(shareable)]
 pub struct SimpleProduct {
     pub id: ID,
+    pub pippo: String,
 }
 
 // #[derive(Interface)]
