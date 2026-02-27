@@ -17,6 +17,11 @@ description = "Run orders subgraph in development mode"
 command = "cargo"
 args = ["run", "--bin", "orders-subgraph"]
 
+[tasks.dev-customers]
+description = "Run customers subgraph in development mode"
+command = "cargo"
+args = ["run", "--bin", "customers-subgraph"]
+
 [tasks.build-products]
 description = "Build products subgraph"
 command = "cargo"
@@ -27,9 +32,14 @@ description = "Build orders subgraph"
 command = "cargo"
 args = ["build", "--release", "--bin", "orders-subgraph"]
 
+[tasks.build-customers]
+description = "Build customers subgraph"
+command = "cargo"
+args = ["build", "--release", "--bin", "customers-subgraph"]
+
 [tasks.build-all]
 description = "Build all subgraphs"
-dependencies = ["build-products", "build-orders"]
+dependencies = ["build-products", "build-orders", "build-customers"]
 
 [tasks.export-schemas]
 description = "Export GraphQL schemas to files"

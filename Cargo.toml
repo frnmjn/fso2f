@@ -12,6 +12,10 @@ name = "orders-subgraph"
 path = "src/bin/orders-subgraph.rs"
 
 [[bin]]
+name = "customers-subgraph"
+path = "src/bin/customers-subgraph.rs"
+
+[[bin]]
 name = "export-schemas"
 path = "src/bin/export-schemas.rs"
 

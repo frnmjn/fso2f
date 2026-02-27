@@ -1,59 +1,18 @@
-input CreateOrder {
-	customer: CustomerInput!
-	items: [CreateOrderLine!]!
-}
-
-input CreateOrderLine {
-	productId: ID!
-	quantity: Int!
-}
-
 type Customer @key(fields: "id") {
 	id: ID!
+	"""
+	This field uses @override to take control from the orders subgraph
+	"""
 	name: String! @shareable
-	vat: String!
-}
-
-input CustomerInput {
-	id: ID!
-	name: String!
-	vat: String!
-}
-
-type Mutation {
-	createOrder(order: CreateOrder!): Order!
-}
-
-type Order {
-	id: OrderId!
-	customer: Customer!
-	totalAmount: Float!
-	status: OrderStatus!
-	lines: [OrderLine!]!
-}
-
-scalar OrderId
-
-type OrderLine {
-	lineNumber: Int!
-	quantity: Int!
-	discount: Float
-	product: SimpleProduct!
-}
-
-enum OrderStatus {
-	DRAFT
-	CONFIRMED
-	Cancelled
+	"""
+	New fields owned by customers subgraph
+	"""
+	email: String!
+	phone: String
 }
 
 type Query {
-	order(id: OrderId!): Order!
-}
-
-type SimpleProduct @key(fields: "id") @shareable {
-	id: ID!
-	pippo: String!
+	customer(id: ID!): Customer!
 }
 
 """

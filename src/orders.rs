@@ -23,11 +23,21 @@ impl OrderQuery {
             id,
             customer: Customer {
                 id: ID::from(Uuid::new_v4().to_string()),
-                name: "John Doe".to_string(),
+                name: "John Doe From Order".to_string(),
                 vat: "VAT123456".to_string(),
             },
             total_amount: 99.99,
             status: OrderStatus::Confirmed,
+        }
+    }
+
+    #[graphql(entity)]
+    async fn find_customer_by_id(&self, #[graphql(key)] id: ID) -> Customer {
+        tracing::info!("Resolving customer entity with id: {}", id.to_string());
+        Customer {
+            id,
+            name: "John Doe From Order".to_string(),
+            vat: "VAT123456".to_string(),
         }
     }
 
@@ -52,8 +62,8 @@ pub struct Order {
 #[derive(SimpleObject, InputObject)]
 #[graphql(input_name = "CustomerInput")]
 pub struct Customer {
-    #[graphql(skip)]
     pub id: ID,
+    #[graphql(shareable)]
     pub name: String,
     pub vat: String,
 }
