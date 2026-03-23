@@ -4,59 +4,13 @@ default_to_workspace = false
 [tasks.install]
 description = "Install cargo-make if not already installed"
 script = '''
-cargo install cargo-make
+npm -g install wgc
 '''
-
-[tasks.dev-products]
-description = "Run products subgraph in development mode"
-command = "cargo"
-args = ["run", "--bin", "products-subgraph"]
-
-[tasks.dev-orders]
-description = "Run orders subgraph in development mode"
-command = "cargo"
-args = ["run", "--bin", "orders-subgraph"]
-
-[tasks.dev-customers]
-description = "Run customers subgraph in development mode"
-command = "cargo"
-args = ["run", "--bin", "customers-subgraph"]
-
-[tasks.build-products]
-description = "Build products subgraph"
-command = "cargo"
-args = ["build", "--release", "--bin", "products-subgraph"]
-
-[tasks.build-orders]
-description = "Build orders subgraph"
-command = "cargo"
-args = ["build", "--release", "--bin", "orders-subgraph"]
-
-[tasks.build-customers]
-description = "Build customers subgraph"
-command = "cargo"
-args = ["build", "--release", "--bin", "customers-subgraph"]
-
-[tasks.build-all]
-description = "Build all subgraphs"
-dependencies = ["build-products", "build-orders", "build-customers"]
 
 [tasks.export-schemas]
 description = "Export GraphQL schemas to files"
 command = "cargo"
 args = ["run", "--bin", "export-schemas"]
-
-[tasks.docker-build]
-description = "Build Docker images for both subgraphs"
-script = '''
-docker compose build
-'''
-
-[tasks.docker-build-no-cache]
-description = "Build Docker images without cache"
-script = '''
-docker compose build --no-cache
-'''
 
 [tasks.docker-up]
 description = "Start all services in detached mode"
@@ -70,33 +24,6 @@ script = '''
 docker compose down
 '''
 
-[tasks.docker-restart-products]
-description = "Restart products subgraph container"
-script = '''
-docker compose restart products-subgraph
-'''
-
-[tasks.docker-restart-orders]
-description = "Restart orders subgraph container"
-script = '''
-docker compose restart orders-subgraph
-'''
-
-[tasks.clean]
-description = "Clean build artifacts"
-command = "cargo"
-args = ["clean"]
-
-[tasks.fmt]
-description = "Format code"
-command = "cargo"
-args = ["fmt"]
-
-[tasks.check]
-description = "Check code without building"
-command = "cargo"
-args = ["check", "--all-targets"]
-
 [tasks.clippy]
 description = "Run clippy lints"
 command = "cargo"
@@ -106,16 +33,6 @@ args = ["clippy", "--all-targets", "--", "-D", "warnings"]
 description = "Run tests"
 command = "cargo"
 args = ["test"]
-
-[tasks.setup]
-description = "Setup project (install dependencies, build schemas)"
-dependencies = ["export-schemas"]
-
-[tasks.wgc-install]
-description = "Install wondergraph "
-script = '''
-npm -g install wgc
-'''
 
 [tasks.wgc-build-router]
 description = "Build WonderGraph router configuration"
@@ -136,6 +53,90 @@ jq -r '.engineConfig.graphqlSchema' schemas/federation/router.json > schemas/fed
 echo "✅ Federated schema exported to schemas/federation/federated-schema.graphql"
 '''
 
+[tasks.subgraph-create-products]
+description = "Create products subgraph"
+command = "wgc"
+args = [
+    "subgraph",
+    "create",
+    "products",
+    "--schema",
+    "schemas/products.graphql",
+    "--routing-url",
+    "http://products-subgraph:3001/graphql",
+    "-n",
+    "development",
+]
+
+[tasks.subgraph-create-orders]
+description = "Create orders subgraph"
+command = "wgc"
+args = [
+    "subgraph",
+    "create",
+    "orders",
+    "--schema",
+    "schemas/orders.graphql",
+    "--routing-url",
+    "http://orders-subgraph:3002/graphql",
+    "-n",
+    "development",
+]
+
+[tasks.subgraph-create-customers]
+description = "Create customers subgraph"
+command = "wgc"
+args = [
+    "subgraph",
+    "create",
+    "customers",
+    "--schema",
+    "schemas/customers.graphql",
+    "--routing-url",
+    "http://customers-subgraph:3003/graphql",
+    "-n",
+    "development",
+]
+
+[tasks.subgraph-publish-products]
+description = "Publish products subgraph"
+command = "wgc"
+args = [
+    "subgraph",
+    "publish",
+    "products",
+    "--schema",
+    "schemas/products.graphql",
+    "-n",
+    "development",
+]
+
+[tasks.subgraph-publish-orders]
+description = "Publish orders subgraph"
+command = "wgc"
+args = [
+    "subgraph",
+    "publish",
+    "orders",
+    "--schema",
+    "schemas/orders.graphql",
+    "-n",
+    "development",
+]
+
+[tasks.subgraph-publish-customers]
+description = "Publish customers subgraph"
+command = "wgc"
+args = [
+    "subgraph",
+    "publish",
+    "customers",
+    "--schema",
+    "schemas/customers.graphql",
+    "-n",
+    "development",
+]
+
 [tasks.dev]
 description = "Run all subgraphs locally (requires PostgreSQL running)"
 dependencies = [
@@ -149,16 +150,32 @@ dependencies = [
 description = "Show available tasks"
 script = '''
 echo "Available tasks:"
-echo "  cargo make dev-products       - Run products subgraph"
-echo "  cargo make dev-orders         - Run orders subgraph"
-echo "  cargo make build-all          - Build all subgraphs"
-echo "  cargo make export-schemas     - Export GraphQL schemas"
-echo "  cargo make docker-up          - Start with Docker Compose"
-echo "  cargo make docker-down        - Stop Docker Compose"
-echo "  cargo make docker-restart-*   - Restart specific subgraph"
-echo "  cargo make fmt                - Format code"
-echo "  cargo make check              - Check code"
-echo "  cargo make clippy             - Run lints"
-echo "  cargo make test               - Run tests"
-echo "  cargo make help               - Show this help"
+echo ""
+echo "Development:"
+echo "  cargo make install                    - Install wgc"
+echo "  cargo make export-schemas             - Export GraphQL schemas"
+echo "  cargo make docker-up                  - Start all services"
+echo "  cargo make docker-down                - Stop all services"
+echo "  cargo make dev                        - Run all subgraphs locally"
+echo ""
+echo "Subgraph Creation:"
+echo "  cargo make subgraph-create-products   - Create products subgraph"
+echo "  cargo make subgraph-create-orders     - Create orders subgraph"
+echo "  cargo make subgraph-create-customers  - Create customers subgraph"
+echo ""
+echo "Subgraph Publishing:"
+echo "  cargo make subgraph-publish-products   - Publish products subgraph"
+echo "  cargo make subgraph-publish-orders     - Publish orders subgraph"
+echo "  cargo make subgraph-publish-customers  - Publish customers subgraph"
+echo ""
+echo "Federation:"
+echo "  cargo make wgc-build-router           - Build router configuration"
+echo "  cargo make export-federated-schema    - Export federated schema"
+echo ""
+echo "Code Quality:"
+echo "  cargo make clippy                     - Run lints"
+echo "  cargo make test                       - Run tests"
+echo ""
+echo "Help:"
+echo "  cargo make help                       - Show this help"
 '''

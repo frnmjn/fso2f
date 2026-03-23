@@ -1,14 +1,5 @@
 type Customer @key(fields: "id") {
 	id: ID!
-	"""
-	This field uses @override to take control from the orders subgraph
-	"""
-	name: String! @shareable
-	"""
-	New fields owned by customers subgraph
-	"""
-	email: String!
-	phone: String
 }
 
 type Query {

@@ -6,12 +6,14 @@ schema {
 type Query {
   product(code: String!): SimpleProduct!
   order(id: OrderId!): Order!
+  customer(id: ID!): Customer!
 }
 
 type SimpleProduct {
   id: ID!
   code: String!
   description: String!
+  pippo: String!
 }
 
 input CreateOrder {
@@ -25,11 +27,17 @@ input CreateOrderLine {
 }
 
 type Customer {
+  id: ID!
+  """This field uses @override to take control from the orders subgraph"""
   name: String!
   vat: String!
+  """New fields owned by customers subgraph"""
+  email: String!
+  phone: String
 }
 
 input CustomerInput {
+  id: ID!
   name: String!
   vat: String!
 }

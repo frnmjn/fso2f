@@ -68,14 +68,15 @@ services:
         condition: service_healthy
 
   wundergraph-router:
-    image: ghcr.io/wundergraph/cosmo/router
+    image: ghcr.io/wundergraph/cosmo/router:latest
+    pull_policy: always
     environment:
-      LOG_LEVEL: info
-      CORS_ALLOW_CREDENTIALS: true
+      DEV_MODE: true
+      DEMO_MODE: true
       LISTEN_ADDR: '0.0.0.0:5000'
-    volumes:
-      - ./schemas/federation/router.json:/router.json
-      - ./schemas/federation/config.yaml:/config.yaml
+      GRAPH_API_TOKEN: 'eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJiOGI1NmIwNS0zZDVmLTRhM2QtYTZmNy1kY2RhMjc4ZjljZDciLCJmZWRlcmF0ZWRfZ3JhcGhfaWQiOiJhYWFhMzhkZi04MWYwLTQ3MmYtYjhhYi0yMzRjODIyYWI5OWUiLCJhdWQiOiJjb3NtbzpncmFwaC1rZXkiLCJvcmdhbml6YXRpb25faWQiOiIwMzdhYTNmNi03ZGRlLTQ0ZTMtOGFjOS0zMGZlMmYwYjM5YjkiLCJpYXQiOjE3NzM2OTIwOTR9.CSQ_RGbInmdOXmxAdmOWnX2eqTGuWEZnwNGFC511oCQ'
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - '5000:5000'
 
