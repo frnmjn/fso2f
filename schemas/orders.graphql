@@ -10,8 +10,8 @@ input CreateOrderLine {
 
 type Customer @key(fields: "id") {
 	id: ID!
-	name: String!
-	vat: String!
+	name: String! @shareable
+	vat: String! @shareable
 }
 
 input CustomerInput {

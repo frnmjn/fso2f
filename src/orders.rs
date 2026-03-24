@@ -63,7 +63,9 @@ pub struct Order {
 #[graphql(input_name = "CustomerInput")]
 pub struct Customer {
     pub id: ID,
+    #[graphql(shareable)]
     pub name: String,
+    #[graphql(shareable)]
     pub vat: String,
 }
 

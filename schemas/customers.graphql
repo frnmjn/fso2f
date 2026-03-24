@@ -1,5 +1,12 @@
 type Customer @key(fields: "id") {
 	id: ID!
+	name: String! @shareable
+	"""
+	New fields owned by customers subgraph
+	"""
+	email: String!
+	phone: String
+	vat: String! @shareable
 }
 
 type Query {
