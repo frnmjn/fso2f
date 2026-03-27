@@ -152,7 +152,7 @@ args = [
 [tasks.feature-flag-create]
 description = "Create the feature flag for customers"
 script = '''
-wgc feature-flag delete flag-customers -n development || true
+|| true
 wgc feature-flag create flag-customers --feature-subgraphs strangler-customers -n development --enabled
 '''
 
@@ -173,10 +173,12 @@ wgc subgraph update customers --routing-url http://customers-subgraph:3003/graph
 wgc subgraph publish customers --schema schemas/customers.graphql -n development
 '''
 
-[tasks.federated-graph-delete]
-description = "Delete the federated graph and all the resource created"
-command = "wgc"
-args = ["federated-graph", "delete", "fso2f", "-n", "development"]
+[tasks.reset]
+description = "Delete all the resource created"
+script = '''
+wgc federated-graph delete fso2f -n development || true
+wgc feature-flag delete flag-customers -n development || true
+'''
 
 # Help
 
@@ -206,7 +208,7 @@ echo "  cargo make feature-flag-create                      - Create customers f
 echo "  cargo make feature-flag-disable                     - Disable customers feature flag"
 echo "  cargo make feature-flag-enable                      - Enable customers feature flag"
 echo "  cargo make promote-customers                        - Full workflow: promote customers to base"
-echo "  cargo make federated-graph-delete                   - Delete the federated graph and all the resource created"
+echo "  cargo make reset                                    - Delete all the resource created"
 echo ""
 echo "Help:"
 echo "  cargo make help                                     - Show this help"
