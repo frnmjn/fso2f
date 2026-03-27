@@ -1,5 +1,5 @@
 use async_graphql::{EmptyMutation, EmptySubscription, SDLExportOptions, Schema};
-use fso2f::{customers, orders, products};
+use fso2f::{customers, fake_customers, orders, products};
 use std::fs;
 
 #[tokio::main]
@@ -21,6 +21,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let orders_sdl = orders_schema.sdl_with_options(SDLExportOptions::new().federation());
     fs::write("schemas/orders.graphql", orders_sdl)?;
     println!("✅ Orders schema exported to schemas/orders.graphql");
+
+    // Generate fake customers subgraph schema
+    let fake_customers_schema = Schema::new(
+        fake_customers::FakeCustomerQuery::default(),
+        EmptyMutation,
+        EmptySubscription,
+    );
+    let fake_customers_sdl =
+        fake_customers_schema.sdl_with_options(SDLExportOptions::new().federation());
+    fs::write("schemas/fake_customers.graphql", fake_customers_sdl)?;
+    println!("✅ Fake Customers schema exported to schemas/fake_customers.graphql");
 
     // Generate customers subgraph schema
     let customers_schema = Schema::new(

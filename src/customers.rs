@@ -35,15 +35,13 @@ impl CustomerQuery {
 #[derive(SimpleObject)]
 pub struct Customer {
     pub id: ID,
-    // #[graphql(override_from = "orders")]
-    #[graphql(shareable)]
+    #[graphql(override_from = "orders")]
     pub name: String,
+    #[graphql(override_from = "orders")]
+    pub vat: String,
     /// New fields owned by customers subgraph
     pub email: String,
     pub phone: Option<String>,
-    // #[graphql(override_from = "orders")]
-    #[graphql(shareable)]
-    pub vat: String,
 }
 
 #[derive(Default)]

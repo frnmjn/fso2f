@@ -1,16 +1,5 @@
 type Customer @key(fields: "id") {
 	id: ID!
-	name: String! @override(from: "orders")
-	vat: String! @override(from: "orders")
-	"""
-	New fields owned by customers subgraph
-	"""
-	email: String!
-	phone: String
-}
-
-type Query {
-	customer(id: ID!): Customer!
 }
 
 """

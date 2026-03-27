@@ -1,27 +1,12 @@
 [config]
 default_to_workspace = false
 
+# Development
+
 [tasks.install]
 description = "Install cargo-make if not already installed"
 script = '''
 npm -g install wgc
-'''
-
-[tasks.export-schemas]
-description = "Export GraphQL schemas to files"
-command = "cargo"
-args = ["run", "--bin", "export-schemas"]
-
-[tasks.docker-up]
-description = "Start all services in detached mode"
-script = '''
-docker compose up -d
-'''
-
-[tasks.docker-down]
-description = "Stop all Docker Compose services"
-script = '''
-docker compose down
 '''
 
 [tasks.clippy]
@@ -29,10 +14,7 @@ description = "Run clippy lints"
 command = "cargo"
 args = ["clippy", "--all-targets", "--", "-D", "warnings"]
 
-[tasks.test]
-description = "Run tests"
-command = "cargo"
-args = ["test"]
+# Local Federation
 
 [tasks.wgc-build-router]
 description = "Build WonderGraph router configuration"
@@ -46,6 +28,11 @@ args = [
     "./schemas/federation/router.json",
 ]
 
+[tasks.export-schemas]
+description = "Export GraphQL schemas to files"
+command = "cargo"
+args = ["run", "--bin", "export-schemas"]
+
 [tasks.export-federated-schema]
 description = "Export federated schema to GraphQL SDL"
 script = '''
@@ -53,41 +40,49 @@ jq -r '.engineConfig.graphqlSchema' schemas/federation/router.json > schemas/fed
 echo "✅ Federated schema exported to schemas/federation/federated-schema.graphql"
 '''
 
-[tasks.subgraph-create-products]
-description = "Create products subgraph"
-command = "wgc"
-args = [
-    "subgraph",
-    "create",
-    "products",
-    "--routing-url",
-    "http://products-subgraph:3001/graphql",
-    "-n",
-    "development",
-]
+[tasks.local]
+description = "Run all subgraphs locally with local router"
+script = '''
+docker compose down
+cargo make export-schemas
+cargo make wgc-build-router
+docker compose --profile local up -d
+'''
 
-[tasks.subgraph-create-orders]
-description = "Create orders subgraph"
-command = "wgc"
-args = [
-    "subgraph",
-    "create",
-    "orders",
-    "--routing-url",
-    "http://orders-subgraph:3002/graphql",
-    "-n",
-    "development",
-]
+# Federation
 
-[tasks.subgraph-create-customers]
-description = "Create customers subgraph"
+[tasks.router-token-create]
+description = "Create a router token"
+script = '''
+wgc router token delete fso2f -g fso2f -n development || true
+TOKEN=$(wgc router token create "fso2f" -g "fso2f" -n development -r)
+if [ $? -ne 0 ]; then
+    echo "❌ Failed to create router token" >&2
+    exit 1
+fi
+echo ""
+echo "✅ Token created! Run the following command to export it:"
+echo ""
+echo "  export GRAPH_API_TOKEN='$TOKEN'"
+echo ""
+'''
+
+[tasks.control-plane]
+description = "Run all subgraphs local with cloud control plane"
+script = '''
+docker compose down
+docker compose --profile control-plane up -d
+'''
+
+[tasks.federated-graph-create]
+description = "Create the federated graph"
 command = "wgc"
 args = [
-    "subgraph",
+    "federated-graph",
     "create",
-    "customers",
+    "fso2f",
     "--routing-url",
-    "http://customers-subgraph:3003/graphql",
+    "http://localhost:5000/graphql",
     "-n",
     "development",
 ]
@@ -99,6 +94,8 @@ args = [
     "subgraph",
     "publish",
     "products",
+    "--routing-url",
+    "http://products-subgraph:3001/graphql",
     "--schema",
     "schemas/products.graphql",
     "-n",
@@ -112,64 +109,105 @@ args = [
     "subgraph",
     "publish",
     "orders",
+    "--routing-url",
+    "http://orders-subgraph:3002/graphql",
     "--schema",
     "schemas/orders.graphql",
     "-n",
     "development",
 ]
 
-[tasks.subgraph-publish-customers]
-description = "Publish customers subgraph"
+[tasks.subgraph-publish-fake-customers]
+description = "Publish customers fake subgraph"
 command = "wgc"
 args = [
     "subgraph",
     "publish",
     "customers",
+    "--routing-url",
+    "http://not-existing-url/graphql",
     "--schema",
-    "schemas/customers.graphql",
+    "schemas/fake_customers.graphql",
     "-n",
     "development",
 ]
 
-[tasks.dev]
-description = "Run all subgraphs locally (requires PostgreSQL running)"
-dependencies = [
-    "docker-down",
-    "export-schemas",
-    "wgc-build-router",
-    "docker-up",
+[tasks.subgraph-publish-strangler-customers]
+description = "Publish strangler customers subgraph"
+command = "wgc"
+args = [
+    "feature-subgraph",
+    "publish",
+    "strangler-customers",
+    "--routing-url",
+    "http://customers-subgraph:3003/graphql",
+    "--schema",
+    "schemas/customers.graphql",
+    "--subgraph",
+    "customers",
+    "-n",
+    "development",
 ]
+
+[tasks.feature-flag-create]
+description = "Create the feature flag for customers"
+script = '''
+wgc feature-flag delete flag-customers -n development || true
+wgc feature-flag create flag-customers --feature-subgraphs strangler-customers -n development --enabled
+'''
+
+[tasks.feature-flag-disable]
+description = "Disable the customers feature flag"
+command = "wgc"
+args = ["feature-flag", "disable", "flag-customers", "-n", "development"]
+
+[tasks.feature-flag-enable]
+description = "Enable the customers feature flag"
+command = "wgc"
+args = ["feature-flag", "enable", "flag-customers", "-n", "development"]
+
+[tasks.promote-customers]
+description = "Promote customers subgraph to base"
+script = '''
+wgc subgraph update customers --routing-url http://customers-subgraph:3003/graphql -n development
+wgc subgraph publish customers --schema schemas/customers.graphql -n development
+'''
+
+[tasks.federated-graph-delete]
+description = "Delete the federated graph and all the resource created"
+command = "wgc"
+args = ["federated-graph", "delete", "fso2f", "-n", "development"]
+
+# Help
 
 [tasks.help]
 description = "Show available tasks"
 script = '''
 echo "Available tasks:"
-echo ""
 echo "Development:"
-echo "  cargo make install                    - Install wgc"
-echo "  cargo make export-schemas             - Export GraphQL schemas"
-echo "  cargo make docker-up                  - Start all services"
-echo "  cargo make docker-down                - Stop all services"
-echo "  cargo make dev                        - Run all subgraphs locally"
+echo "  cargo make install                                  - Install wgc"
+echo "  cargo make clippy                                   - Run lints"
 echo ""
-echo "Subgraph Creation:"
-echo "  cargo make subgraph-create-products   - Create products subgraph"
-echo "  cargo make subgraph-create-orders     - Create orders subgraph"
-echo "  cargo make subgraph-create-customers  - Create customers subgraph"
-echo ""
-echo "Subgraph Publishing:"
-echo "  cargo make subgraph-publish-products   - Publish products subgraph"
-echo "  cargo make subgraph-publish-orders     - Publish orders subgraph"
-echo "  cargo make subgraph-publish-customers  - Publish customers subgraph"
+echo "Local Federation:"
+echo "  cargo make wgc-build-router                         - Build router configuration"
+echo "  cargo make export-schemas                           - Export GraphQL schemas"
+echo "  cargo make export-federated-schema                  - Export federated schema"
+echo "  cargo make local                                    - Run all subgraphs with local router"
 echo ""
 echo "Federation:"
-echo "  cargo make wgc-build-router           - Build router configuration"
-echo "  cargo make export-federated-schema    - Export federated schema"
-echo ""
-echo "Code Quality:"
-echo "  cargo make clippy                     - Run lints"
-echo "  cargo make test                       - Run tests"
+echo "  cargo make router-token-create                      - Create router token and show export command"
+echo "  cargo make control-plane                              - Run all subgraphs with cloud control plane"
+echo "  cargo make federated-graph-create                   - Create the federated graph"
+echo "  cargo make subgraph-publish-products                - Publish products subgraph"
+echo "  cargo make subgraph-publish-orders                  - Publish orders subgraph"
+echo "  cargo make subgraph-publish-fake-customers          - Publish fake customers subgraph"
+echo "  cargo make subgraph-publish-strangler-customers     - Publish strangler customers subgraph"
+echo "  cargo make feature-flag-create                      - Create customers feature flag"
+echo "  cargo make feature-flag-disable                     - Disable customers feature flag"
+echo "  cargo make feature-flag-enable                      - Enable customers feature flag"
+echo "  cargo make promote-customers                        - Full workflow: promote customers to base"
+echo "  cargo make federated-graph-delete                   - Delete the federated graph and all the resource created"
 echo ""
 echo "Help:"
-echo "  cargo make help                       - Show this help"
+echo "  cargo make help                                     - Show this help"
 '''

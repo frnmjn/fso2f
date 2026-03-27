@@ -8,7 +8,3 @@ subgraphs:
     routing_url: http://orders-subgraph:3002/graphql
     schema:
       file: ../orders.graphql
-  - name: subgraph-customers
-    routing_url: http://customers-subgraph:3003/graphql
-    schema:
-      file: ../customers.graphql
