@@ -51,29 +51,6 @@ docker compose --profile local up -d
 
 # Federation
 
-[tasks.router-token-create]
-description = "Create a router token"
-script = '''
-wgc router token delete fso2f -g fso2f -n development || true
-TOKEN=$(wgc router token create "fso2f" -g "fso2f" -n development -r)
-if [ $? -ne 0 ]; then
-    echo "❌ Failed to create router token" >&2
-    exit 1
-fi
-echo ""
-echo "✅ Token created! Run the following command to export it:"
-echo ""
-echo "  export GRAPH_API_TOKEN='$TOKEN'"
-echo ""
-'''
-
-[tasks.control-plane]
-description = "Run all subgraphs local with cloud control plane"
-script = '''
-docker compose down
-docker compose --profile control-plane up -d
-'''
-
 [tasks.federated-graph-create]
 description = "Create the federated graph"
 command = "wgc"
@@ -86,6 +63,34 @@ args = [
     "-n",
     "development",
 ]
+
+[tasks.router-token-create]
+description = "Create a router token"
+script = '''
+TOKEN=$(wgc router token create "fso2f" -g "fso2f" -n development -r)
+if [ $? -ne 0 ]; then
+    echo "❌ Failed to create router token" >&2
+    exit 1
+fi
+echo ""
+echo "✅ Token created! Run the following command to export it:"
+echo ""
+echo ""
+echo ""
+echo ""
+echo "  export GRAPH_API_TOKEN='$TOKEN'"
+echo ""
+echo ""
+echo ""
+echo ""
+'''
+
+[tasks.control-plane]
+description = "Run all subgraphs local with cloud control plane"
+script = '''
+docker compose down
+docker compose --profile control-plane up -d
+'''
 
 [tasks.subgraph-publish-products]
 description = "Publish products subgraph"
@@ -152,7 +157,6 @@ args = [
 [tasks.feature-flag-create]
 description = "Create the feature flag for customers"
 script = '''
-|| true
 wgc feature-flag create flag-customers --feature-subgraphs strangler-customers -n development --enabled
 '''
 
@@ -171,13 +175,19 @@ description = "Promote customers subgraph to base"
 script = '''
 wgc subgraph update customers --routing-url http://customers-subgraph:3003/graphql -n development
 wgc subgraph publish customers --schema schemas/customers.graphql -n development
+wgc subgraph delete strangler-customers -n development
 '''
 
 [tasks.reset]
 description = "Delete all the resource created"
 script = '''
-wgc federated-graph delete fso2f -n development || true
-wgc feature-flag delete flag-customers -n development || true
+    wgc router token delete fso2f -g fso2f -n development || true
+    wgc federated-graph delete fso2f -n development || true
+    wgc subgraph delete products -n development || true
+    wgc subgraph delete orders -n development || true
+    wgc subgraph delete customers -n development || true
+    wgc feature-subgraph delete strangler-customers -n development || true
+    wgc feature-flag delete flag-customers -n development || true
 '''
 
 # Help
@@ -197,9 +207,9 @@ echo "  cargo make export-federated-schema                  - Export federated s
 echo "  cargo make local                                    - Run all subgraphs with local router"
 echo ""
 echo "Federation:"
+echo "  cargo make federated-graph-create                   - Create the federated graph"
 echo "  cargo make router-token-create                      - Create router token and show export command"
 echo "  cargo make control-plane                              - Run all subgraphs with cloud control plane"
-echo "  cargo make federated-graph-create                   - Create the federated graph"
 echo "  cargo make subgraph-publish-products                - Publish products subgraph"
 echo "  cargo make subgraph-publish-orders                  - Publish orders subgraph"
 echo "  cargo make subgraph-publish-fake-customers          - Publish fake customers subgraph"
