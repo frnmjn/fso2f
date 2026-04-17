@@ -85,13 +85,6 @@ echo ""
 echo ""
 '''
 
-[tasks.control-plane]
-description = "Run all subgraphs local with cloud control plane"
-script = '''
-docker compose down
-docker compose --profile control-plane up -d
-'''
-
 [tasks.subgraph-publish-products]
 description = "Publish products subgraph"
 command = "wgc"
@@ -121,6 +114,13 @@ args = [
     "-n",
     "development",
 ]
+
+[tasks.control-plane]
+description = "Run all subgraphs local with cloud control plane"
+script = '''
+docker compose down
+docker compose --profile control-plane up -d
+'''
 
 [tasks.subgraph-publish-fake-customers]
 description = "Publish customers fake subgraph"
@@ -181,13 +181,13 @@ wgc subgraph delete strangler-customers -n development
 [tasks.reset]
 description = "Delete all the resource created"
 script = '''
-    wgc router token delete fso2f -g fso2f -n development || true
-    wgc federated-graph delete fso2f -n development || true
-    wgc subgraph delete products -n development || true
-    wgc subgraph delete orders -n development || true
-    wgc subgraph delete customers -n development || true
-    wgc feature-subgraph delete strangler-customers -n development || true
-    wgc feature-flag delete flag-customers -n development || true
+    wgc router token delete fso2f -g fso2f -n development -f || true
+    wgc federated-graph delete fso2f -n development -f || true
+    wgc subgraph delete products -n development -f || true
+    wgc subgraph delete orders -n development -f || true
+    wgc subgraph delete customers -n development -f || true
+    wgc feature-subgraph delete strangler-customers -n development -f || true
+    wgc feature-flag delete flag-customers -n development -f || true
 '''
 
 # Help
@@ -209,9 +209,9 @@ echo ""
 echo "Federation:"
 echo "  cargo make federated-graph-create                   - Create the federated graph"
 echo "  cargo make router-token-create                      - Create router token and show export command"
-echo "  cargo make control-plane                              - Run all subgraphs with cloud control plane"
 echo "  cargo make subgraph-publish-products                - Publish products subgraph"
 echo "  cargo make subgraph-publish-orders                  - Publish orders subgraph"
+echo "  cargo make control-plane                              - Run all subgraphs with cloud control plane"
 echo "  cargo make subgraph-publish-fake-customers          - Publish fake customers subgraph"
 echo "  cargo make subgraph-publish-strangler-customers     - Publish strangler customers subgraph"
 echo "  cargo make feature-flag-create                      - Create customers feature flag"

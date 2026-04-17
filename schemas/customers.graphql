@@ -6,7 +6,7 @@ type Customer @key(fields: "id") {
 	New fields owned by customers subgraph
 	"""
 	email: String!
-	phone: String
+	phone: String!
 }
 
 type Query {

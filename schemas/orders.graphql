@@ -37,7 +37,6 @@ scalar OrderId
 type OrderLine {
 	lineNumber: Int!
 	quantity: Int!
-	discount: Float
 	product: SimpleProduct!
 }
 
@@ -53,7 +52,6 @@ type Query {
 
 type SimpleProduct @key(fields: "id") @shareable {
 	id: ID!
-	pippo: String!
 }
 
 """

@@ -16,6 +16,20 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data
 
+  migrate:
+    image: rust:1.86
+    working_dir: /app
+    command: sh -c "cargo install sqlx-cli --no-default-features --features postgres --locked && sqlx migrate run"
+    environment:
+      DATABASE_URL: postgres://fso2f:fso2f@postgres:5432/fso2f
+    volumes:
+      - .:/app
+      - cargo-cache:/usr/local/cargo/registry
+      - target-cache:/app/target
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   products-subgraph:
     image: rust:1.84
     working_dir: /app
@@ -30,8 +44,8 @@ services:
       - cargo-cache:/usr/local/cargo/registry
       - target-cache:/app/target
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   orders-subgraph:
     image: rust:1.84
@@ -47,8 +61,8 @@ services:
       - cargo-cache:/usr/local/cargo/registry
       - target-cache:/app/target
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   customers-subgraph:
     image: rust:1.84
@@ -64,8 +78,8 @@ services:
       - cargo-cache:/usr/local/cargo/registry
       - target-cache:/app/target
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     profiles:
       - control-plane
 

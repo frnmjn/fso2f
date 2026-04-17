@@ -1,13 +1,34 @@
+use thiserror::Error;
+#[derive(Error, Debug)]
+pub enum AppError {
+    #[error("Database error: {0}")]
+    Sqlx(#[from] sqlx::Error),
+    #[error("Not found: {0}")]
+    NotFound(String),
+}
+
+impl async_graphql::ErrorExtensions for AppError {
+    fn extend(&self) -> async_graphql::Error {
+        async_graphql::Error::new(self.to_string())
+    }
+}
 use std::time::Duration;
 
 use async_graphql::{
-    ComplexObject, Enum, InputObject, Interface, MergedObject, Object, OneofObject, SimpleObject,
-    Subscription, scalar,
+    ComplexObject, Context, Enum, InputObject, Interface, MergedObject, Object, OneofObject,
+    SimpleObject, Subscription,
+    connection::{Connection, EmptyFields},
+    scalar,
 };
+
+// DataLoader per OrderLine
+
 use serde::{Deserialize, Serialize};
 use sqlx::types::chrono::{DateTime, TimeZone, Utc};
 use tokio_stream::{Stream, StreamExt};
 use uuid::Uuid;
+
+use crate::db::{customers::get_customer_by_id, orders::get_order_by_id};
 
 #[derive(MergedObject, Default)]
 pub struct QueryRoot(ProductQuery, OrderQuery);
@@ -87,25 +108,36 @@ impl ExpiringProduct {
 #[derive(Default)]
 struct OrderQuery;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 struct OrderId(Uuid);
 
 scalar!(OrderId);
 
 #[Object]
 impl OrderQuery {
-    async fn order(&self, id: OrderId) -> Order {
-        tracing::info!("Fetching order with id: {:?}", id.0);
-        Order {
-            id,
+    async fn order(&self, ctx: &Context<'_>, id: OrderId) -> async_graphql::Result<Order> {
+        let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
+        let db_order = get_order_by_id(pool, id.0)
+            .await?
+            .ok_or(AppError::NotFound("Order not found".to_string()))?;
+        let db_customer = get_customer_by_id(pool, db_order.customer_id)
+            .await?
+            .ok_or(AppError::NotFound("Customer not found".to_string()))?;
+        Ok(Order {
+            id: OrderId(db_order.id),
             customer: Customer {
-                id: Uuid::new_v4(),
-                name: "John Doe".to_string(),
-                vat: "VAT123456".to_string(),
+                id: db_customer.id,
+                name: db_customer.name,
+                vat: db_customer.vat,
             },
-            total_amount: 99.99,
-            status: OrderStatus::Confirmed,
-        }
+            total_amount: db_order.total_amount,
+            status: match db_order.status.as_str() {
+                "Draft" => OrderStatus::Draft,
+                "Confirmed" => OrderStatus::Confirmed,
+                "Cancelled" | "Deleted" => OrderStatus::Deleted,
+                _ => OrderStatus::Draft,
+            },
+        })
     }
 }
 
@@ -121,7 +153,6 @@ struct Order {
 #[derive(SimpleObject, InputObject)]
 #[graphql(input_name = "CustomerInput")]
 pub struct Customer {
-    #[graphql(skip)]
     id: Uuid,
     name: String,
     vat: String,
@@ -137,24 +168,18 @@ enum OrderStatus {
 
 #[ComplexObject]
 impl Order {
-    async fn lines(&self) -> Vec<OrderLine> {
-        tracing::info!("Fetching order lines for order id: {:?}", self.id.0);
-        vec![
-            OrderLine {
-                line_number: 10,
-                quantity: 2,
-                discount: Some(5.0),
-            },
-            OrderLine {
-                line_number: 20,
-                quantity: 5,
-                discount: None,
-            },
-        ]
+    async fn lines(
+        &self,
+        _ctx: &Context<'_>,
+        _after: Option<String>,
+        _first: Option<i32>,
+    ) -> async_graphql::Result<Connection<i32, OrderLine, EmptyFields, EmptyFields>> {
+        // TODO: Integrare caricamento reale delle order line
+        Ok(Connection::new(false, false))
     }
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 struct OrderLine {
     line_number: i32,

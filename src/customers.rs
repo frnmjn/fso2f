@@ -1,4 +1,7 @@
-use async_graphql::{ID, MergedObject, Object, SimpleObject};
+use async_graphql::{Context, ID, MergedObject, Object, SimpleObject};
+use uuid::Uuid;
+
+use crate::db::customers::{DbCustomer, get_customer_by_id};
 
 #[derive(MergedObject, Default)]
 pub struct Query(CustomerQuery);
@@ -8,27 +11,29 @@ pub struct CustomerQuery;
 
 #[Object]
 impl CustomerQuery {
-    async fn customer(&self, id: ID) -> Customer {
-        tracing::info!("Fetching customer with id: {}", id.to_string());
-        Customer {
-            id: id.clone(),
-            name: "John Doe From Customer".to_string(),
-            email: "john.doe@example.com".to_string(),
-            phone: Some("+39 123 456 7890".to_string()),
-            vat: "VAT123456".to_string(),
-        }
+    async fn customer(&self, ctx: &Context<'_>, id: ID) -> async_graphql::Result<Customer> {
+        let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
+        let uuid = Uuid::parse_str(id.as_str())
+            .map_err(|_| async_graphql::Error::new("Invalid customer ID"))?;
+        let db_customer = get_customer_by_id(pool, uuid)
+            .await?
+            .ok_or_else(|| async_graphql::Error::new("Customer not found"))?;
+        Ok(db_customer.into())
     }
 
     #[graphql(entity)]
-    async fn find_customer_by_id(&self, #[graphql(key)] id: ID) -> Customer {
-        tracing::info!("Resolving customer entity with id: {}", id.to_string());
-        Customer {
-            id: id.clone(),
-            name: "John Doe From Customer".to_string(),
-            email: "john.doe@example.com".to_string(),
-            phone: Some("+39 123 456 7890".to_string()),
-            vat: "VAT123456".to_string(),
-        }
+    async fn find_customer_by_id(
+        &self,
+        ctx: &Context<'_>,
+        #[graphql(key)] id: ID,
+    ) -> async_graphql::Result<Customer> {
+        let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
+        let uuid = Uuid::parse_str(id.as_str())
+            .map_err(|_| async_graphql::Error::new("Invalid customer ID"))?;
+        let db_customer = get_customer_by_id(pool, uuid)
+            .await?
+            .ok_or_else(|| async_graphql::Error::new("Customer not found"))?;
+        Ok(db_customer.into())
     }
 }
 
@@ -41,11 +46,23 @@ pub struct Customer {
     pub vat: String,
     /// New fields owned by customers subgraph
     pub email: String,
-    pub phone: Option<String>,
+    pub phone: String,
 }
 
 #[derive(Default)]
 pub struct Mutation;
+
+impl From<DbCustomer> for Customer {
+    fn from(value: DbCustomer) -> Self {
+        Self {
+            id: value.id.into(),
+            name: value.name,
+            vat: value.vat,
+            email: value.email,
+            phone: value.phone,
+        }
+    }
+}
 
 #[derive(Default)]
 pub struct Subscription;

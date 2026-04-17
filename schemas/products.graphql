@@ -1,12 +1,22 @@
-type Query {
-	product(code: String!): SimpleProduct!
+type DangerousProduct @key(fields: "id") {
+	id: ID! @shareable
+	code: String! @shareable
+	description: String! @shareable
+	maxTemperature: Float!
 }
 
-type SimpleProduct @key(fields: "id") @shareable {
-	id: ID!
-	code: String!
-	description: String!
-	pippo: String!
+"""
+Implement the DateTime<Utc> scalar
+
+The input/output is a string in RFC3339 format.
+"""
+scalar DateTime
+
+type ExpiringProduct @key(fields: "id") {
+	id: ID! @shareable
+	code: String! @shareable
+	description: String! @shareable
+	expirationDate: DateTime!
 }
 
 """
@@ -17,6 +27,10 @@ directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 Directs the executor to skip this field or fragment when the `if` argument is true.
 """
 directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+"""
+Provides a scalar specification URL for specifying the behavior of custom scalar types.
+"""
+directive @specifiedBy(url: String!) on SCALAR
 extend schema @link(
 	url: "https://specs.apollo.dev/federation/v2.5",
 	import: ["@key", "@tag", "@shareable", "@inaccessible", "@override", "@external", "@provides", "@requires", "@composeDirective", "@interfaceObject", "@requiresScopes"]

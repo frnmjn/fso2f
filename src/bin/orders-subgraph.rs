@@ -22,7 +22,9 @@ async fn main() -> Result<(), sqlx::Error> {
         .connect(&database_url)
         .await?;
 
-    let schema = Schema::new(Query::default(), Mutation::default(), EmptySubscription);
+    let schema = Schema::build(Query::default(), Mutation::default(), EmptySubscription)
+        .data(pool.clone())
+        .finish();
 
     // build our application with a route
     let app = Router::new()

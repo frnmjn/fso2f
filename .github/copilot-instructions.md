@@ -16,7 +16,6 @@ The project serves as a hands-on example for understanding:
 - GraphQL subgraph implementation
 - Federation schema design and composition
 - Entity references and relationships across subgraphs
-- Query planning and execution in a federated architecture
 
 ## Code Style & Conventions
 
