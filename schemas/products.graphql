@@ -1,5 +1,6 @@
-type DangerousProduct @key(fields: "id") {
+type DangerousProduct implements Product @key(fields: "id") {
 	id: ID! @shareable
+	kind: String! @shareable
 	code: String! @shareable
 	description: String! @shareable
 	maxTemperature: Float!
@@ -12,11 +13,29 @@ The input/output is a string in RFC3339 format.
 """
 scalar DateTime
 
-type ExpiringProduct @key(fields: "id") {
+type ExpiringProduct implements Product @key(fields: "id") {
 	id: ID! @shareable
+	kind: String! @shareable
 	code: String! @shareable
 	description: String! @shareable
 	expirationDate: DateTime!
+}
+
+interface Product {
+	kind: String!
+	code: String!
+	description: String!
+}
+
+type Query {
+	productById(id: ID!): Product
+}
+
+type StandardProduct implements Product @key(fields: "id") {
+	id: ID! @shareable
+	kind: String! @shareable
+	code: String! @shareable
+	description: String! @shareable
 }
 
 """

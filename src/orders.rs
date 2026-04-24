@@ -49,14 +49,6 @@ impl OrderQuery {
             vat: db_order.customer_vat,
         })
     }
-
-    #[graphql(entity)]
-    async fn find_simple_product_by_id(&self, #[graphql(key)] id: ID) -> SimpleProduct {
-        SimpleProduct { id }
-    }
-
-    // #[graphql(entity)]
-    // async fn find_expiring_product_by_id(&self, #[graphql(key)] _ida
 }
 
 #[derive(SimpleObject)]
@@ -119,7 +111,7 @@ impl Order {
 pub struct OrderLine {
     pub line_number: i32,
     pub quantity: i32,
-    pub product: SimpleProduct,
+    pub product: Product,
 }
 
 impl From<DbOrderLine> for OrderLine {
@@ -127,25 +119,25 @@ impl From<DbOrderLine> for OrderLine {
         Self {
             line_number: db_line.line_number,
             quantity: db_line.quantity,
-            product: SimpleProduct {
+            product: Product::StandardProduct(StandardProduct {
                 id: ID::from(db_line.product_id.to_string()),
-            },
+            }),
         }
     }
-}
-
-// TODO: SimpleProduct is still used by OrderLine and find_simple_product_by_id entity
-#[derive(SimpleObject)]
-#[graphql(shareable)]
-pub struct SimpleProduct {
-    pub id: ID,
 }
 
 #[derive(Interface)]
 #[graphql(field(name = "id", ty = "&ID"))]
 pub enum Product {
+    StandardProduct(StandardProduct),
     DangerousProduct(DangerousProduct),
     ExpiringProduct(ExpiringProduct),
+}
+
+#[derive(SimpleObject)]
+#[graphql(shareable)]
+pub struct StandardProduct {
+    pub id: ID,
 }
 
 #[derive(SimpleObject)]

@@ -1,7 +1,8 @@
 CREATE TABLE products (
     id UUID PRIMARY KEY,
     code TEXT NOT NULL,
-    description TEXT NOT NULL
+    description TEXT NOT NULL,
+    kind TEXT NOT NULL DEFAULT 'standard'
 );
 
 CREATE TABLE dangerous_products (

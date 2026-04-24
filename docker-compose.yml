@@ -19,7 +19,7 @@ services:
   migrate:
     image: rust:1.86
     working_dir: /app
-    command: sh -c "cargo install sqlx-cli --no-default-features --features postgres --locked && sqlx migrate run"
+    command: sh -c "cargo install sqlx-cli --no-default-features --features postgres --locked && sqlx database reset -y && sqlx migrate run"
     environment:
       DATABASE_URL: postgres://fso2f:fso2f@postgres:5432/fso2f
     volumes:

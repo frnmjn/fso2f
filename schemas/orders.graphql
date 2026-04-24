@@ -20,6 +20,14 @@ input CustomerInput {
 	vat: String!
 }
 
+type DangerousProduct implements Product @shareable {
+	id: ID!
+}
+
+type ExpiringProduct implements Product @shareable {
+	id: ID!
+}
+
 type Mutation {
 	createOrder(order: CreateOrder!): Order!
 }
@@ -37,7 +45,7 @@ scalar OrderId
 type OrderLine {
 	lineNumber: Int!
 	quantity: Int!
-	product: SimpleProduct!
+	product: Product!
 }
 
 enum OrderStatus {
@@ -46,11 +54,15 @@ enum OrderStatus {
 	Cancelled
 }
 
+interface Product {
+	id: ID!
+}
+
 type Query {
 	order(id: OrderId!): Order!
 }
 
-type SimpleProduct @key(fields: "id") @shareable {
+type StandardProduct implements Product @shareable {
 	id: ID!
 }
 
