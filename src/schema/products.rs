@@ -6,9 +6,8 @@ use tokio_stream::{Stream, StreamExt};
 use uuid::Uuid;
 
 use crate::db::products::{
-    DbDangerousProduct, DbExpiringProduct, DbProduct, DbStandardProduct,
-    get_dangerous_product_by_id, get_expiring_product_by_id, get_product_by_id,
-    get_standard_product_by_id,
+    DbDangerousProduct, DbExpiringProduct, DbProduct, DbProductKind, get_dangerous_product_by_id,
+    get_expiring_product_by_id, get_product_by_id, get_standard_product_by_id,
 };
 
 #[derive(MergedObject, Default)]
@@ -23,7 +22,7 @@ impl ProductQuery {
         &self,
         ctx: &Context<'_>,
         id: ID,
-    ) -> async_graphql::Result<Option<Product>> {
+    ) -> async_graphql::Result<Option<ProductKind>> {
         let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
         let uuid = Uuid::parse_str(id.as_str())
             .map_err(|_| async_graphql::Error::new("Invalid product ID"))?;
@@ -35,11 +34,11 @@ impl ProductQuery {
     }
 
     #[graphql(entity)]
-    async fn find_product_by_id(
+    async fn find_product_kind_by_id(
         &self,
         ctx: &Context<'_>,
         #[graphql(key)] id: ID,
-    ) -> async_graphql::Result<Product> {
+    ) -> async_graphql::Result<ProductKind> {
         let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
         let uuid = Uuid::parse_str(id.as_str())
             .map_err(|_| async_graphql::Error::new("Invalid product ID"))?;
@@ -50,11 +49,11 @@ impl ProductQuery {
     }
 
     #[graphql(entity)]
-    async fn find_standard_product_by_id(
+    async fn find_product_by_id(
         &self,
         ctx: &Context<'_>,
         #[graphql(key)] id: ID,
-    ) -> async_graphql::Result<StandardProduct> {
+    ) -> async_graphql::Result<Product> {
         let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
         let uuid = Uuid::parse_str(id.as_str())
             .map_err(|_| async_graphql::Error::new("Invalid product ID"))?;
@@ -102,14 +101,14 @@ impl ProductQuery {
     field(name = "code", ty = "String"),
     field(name = "description", ty = "String")
 )]
-pub enum Product {
-    StandardProduct(StandardProduct),
+pub enum ProductKind {
+    Product(Product),
     DangerousProduct(DangerousProduct),
     ExpiringProduct(ExpiringProduct),
 }
 
 #[derive(SimpleObject)]
-pub struct StandardProduct {
+pub struct Product {
     #[graphql(shareable)]
     pub id: ID,
     #[graphql(shareable)]
@@ -120,8 +119,8 @@ pub struct StandardProduct {
     pub description: String,
 }
 
-impl From<DbStandardProduct> for StandardProduct {
-    fn from(db: DbStandardProduct) -> Self {
+impl From<DbProduct> for Product {
+    fn from(db: DbProduct) -> Self {
         Self {
             id: ID::from(db.id.to_string()),
             kind: "standard".to_string(),
@@ -181,12 +180,12 @@ impl From<DbExpiringProduct> for ExpiringProduct {
     }
 }
 
-impl From<DbProduct> for Product {
-    fn from(db: DbProduct) -> Self {
+impl From<DbProductKind> for ProductKind {
+    fn from(db: DbProductKind) -> Self {
         match db {
-            DbProduct::Standard(p) => Product::StandardProduct(StandardProduct::from(p)),
-            DbProduct::Dangerous(p) => Product::DangerousProduct(DangerousProduct::from(p)),
-            DbProduct::Expiring(p) => Product::ExpiringProduct(ExpiringProduct::from(p)),
+            DbProductKind::Product(p) => ProductKind::Product(Product::from(p)),
+            DbProductKind::Dangerous(p) => ProductKind::DangerousProduct(DangerousProduct::from(p)),
+            DbProductKind::Expiring(p) => ProductKind::ExpiringProduct(ExpiringProduct::from(p)),
         }
     }
 }
@@ -202,7 +201,7 @@ impl Subscription {
     async fn new_products(
         &self,
         #[graphql(default = 2)] interval: u64,
-    ) -> impl Stream<Item = Vec<Product>> {
+    ) -> impl Stream<Item = Vec<ProductKind>> {
         tokio_stream::wrappers::IntervalStream::new(tokio::time::interval(Duration::from_secs(
             interval,
         )))
@@ -211,7 +210,7 @@ impl Subscription {
             let mut products = Vec::new();
             for i in 0..new_product_added {
                 if i % 2 == 0 {
-                    products.push(Product::ExpiringProduct(ExpiringProduct {
+                    products.push(ProductKind::ExpiringProduct(ExpiringProduct {
                         id: ID::from(Uuid::new_v4().to_string()),
                         kind: "expiring".to_string(),
                         code: format!("EXP{}", Uuid::new_v4().to_string()),
@@ -219,7 +218,7 @@ impl Subscription {
                         expiration_date: Utc::now() + chrono::Duration::days(30),
                     }));
                 } else {
-                    products.push(Product::DangerousProduct(DangerousProduct {
+                    products.push(ProductKind::DangerousProduct(DangerousProduct {
                         id: ID::from(Uuid::new_v4().to_string()),
                         kind: "dangerous".to_string(),
                         code: format!("DANG{}", Uuid::new_v4().to_string()),

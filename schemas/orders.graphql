@@ -37,7 +37,7 @@ scalar OrderId
 type OrderLine {
 	lineNumber: Int!
 	quantity: Int!
-	product: Product!
+	product: ProductKind!
 }
 
 enum OrderStatus {
@@ -46,7 +46,7 @@ enum OrderStatus {
 	Cancelled
 }
 
-type Product @key(fields: "id") @interfaceObject {
+type ProductKind @key(fields: "id") @interfaceObject {
 	id: ID!
 }
 

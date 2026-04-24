@@ -6,7 +6,7 @@ use axum::{
     response::{Html, IntoResponse},
     routing::get,
 };
-use fso2f::customers::Query;
+use fso2f::schema::customers::Query;
 use sqlx::{Pool, Postgres, postgres::PgPoolOptions};
 
 #[tokio::main]

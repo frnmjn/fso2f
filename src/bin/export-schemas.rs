@@ -1,5 +1,5 @@
 use async_graphql::{EmptyMutation, EmptySubscription, SDLExportOptions, Schema};
-use fso2f::{customers, fake_customers, orders, products};
+use fso2f::schema::{customers, fake_customers, orders, products};
 use std::fs;
 
 #[tokio::main]

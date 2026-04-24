@@ -50,8 +50,8 @@ impl OrderQuery {
     }
 
     #[graphql(entity)]
-    async fn find_product_by_id(&self, #[graphql(key)] id: ID) -> Product {
-        Product { id }
+    async fn find_product_kind_by_id(&self, #[graphql(key)] id: ID) -> ProductKind {
+        ProductKind { id }
     }
 }
 
@@ -115,7 +115,7 @@ impl Order {
 pub struct OrderLine {
     pub line_number: i32,
     pub quantity: i32,
-    pub product: Product,
+    pub product: ProductKind,
 }
 
 impl From<DbOrderLine> for OrderLine {
@@ -123,7 +123,7 @@ impl From<DbOrderLine> for OrderLine {
         Self {
             line_number: db_line.line_number,
             quantity: db_line.quantity,
-            product: Product {
+            product: ProductKind {
                 id: ID::from(db_line.product_id.to_string()),
             },
         }
@@ -132,7 +132,7 @@ impl From<DbOrderLine> for OrderLine {
 
 #[derive(SimpleObject)]
 #[graphql(interface_object)]
-pub struct Product {
+pub struct ProductKind {
     pub id: ID,
 }
 

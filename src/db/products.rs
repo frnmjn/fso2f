@@ -2,13 +2,13 @@ use sqlx::{FromRow, Pool, Postgres};
 use uuid::Uuid;
 
 #[derive(Debug, Clone)]
-pub enum DbProduct {
-    Standard(DbStandardProduct),
+pub enum DbProductKind {
+    Product(DbProduct),
     Dangerous(DbDangerousProduct),
     Expiring(DbExpiringProduct),
 }
 #[derive(Debug, Clone, FromRow)]
-pub struct DbStandardProduct {
+pub struct DbProduct {
     pub id: Uuid,
     pub code: String,
     pub description: String,
@@ -30,7 +30,10 @@ pub struct DbExpiringProduct {
     pub expiration_date: chrono::DateTime<chrono::Utc>,
 }
 
-pub async fn get_product_by_id(pool: &Pool<Postgres>, id: Uuid) -> sqlx::Result<Option<DbProduct>> {
+pub async fn get_product_by_id(
+    pool: &Pool<Postgres>,
+    id: Uuid,
+) -> sqlx::Result<Option<DbProductKind>> {
     let row: Option<(String,)> = sqlx::query_as("SELECT kind FROM products WHERE id = $1")
         .bind(id)
         .fetch_optional(pool)
@@ -38,13 +41,13 @@ pub async fn get_product_by_id(pool: &Pool<Postgres>, id: Uuid) -> sqlx::Result<
     match row.as_ref().map(|r| r.0.as_str()) {
         Some("dangerous") => Ok(get_dangerous_product_by_id(pool, id)
             .await?
-            .map(DbProduct::Dangerous)),
+            .map(DbProductKind::Dangerous)),
         Some("expiring") => Ok(get_expiring_product_by_id(pool, id)
             .await?
-            .map(DbProduct::Expiring)),
+            .map(DbProductKind::Expiring)),
         Some(_) => Ok(get_standard_product_by_id(pool, id)
             .await?
-            .map(DbProduct::Standard)),
+            .map(DbProductKind::Product)),
         None => Ok(None),
     }
 }
@@ -52,13 +55,11 @@ pub async fn get_product_by_id(pool: &Pool<Postgres>, id: Uuid) -> sqlx::Result<
 pub async fn get_standard_product_by_id(
     pool: &Pool<Postgres>,
     id: Uuid,
-) -> sqlx::Result<Option<DbStandardProduct>> {
-    sqlx::query_as::<_, DbStandardProduct>(
-        "SELECT * FROM products WHERE id = $1 and kind = 'standard'",
-    )
-    .bind(id)
-    .fetch_optional(pool)
-    .await
+) -> sqlx::Result<Option<DbProduct>> {
+    sqlx::query_as::<_, DbProduct>("SELECT * FROM products WHERE id = $1")
+        .bind(id)
+        .fetch_optional(pool)
+        .await
 }
 
 pub async fn get_dangerous_product_by_id(
@@ -68,7 +69,7 @@ pub async fn get_dangerous_product_by_id(
     sqlx::query_as::<_, DbDangerousProduct>(
         "SELECT p.id, p.code, p.description, dp.max_temperature \
          FROM products p JOIN dangerous_products dp ON p.id = dp.id \
-         WHERE p.id = $1 and p.kind = 'dangerous'",
+         WHERE p.id = $1",
     )
     .bind(id)
     .fetch_optional(pool)
@@ -82,7 +83,7 @@ pub async fn get_expiring_product_by_id(
     sqlx::query_as::<_, DbExpiringProduct>(
         "SELECT p.id, p.code, p.description, ep.expiration_date \
          FROM products p JOIN expiring_products ep ON p.id = ep.id \
-         WHERE p.id = $1 and p.kind = 'expiring'",
+         WHERE p.id = $1",
     )
     .bind(id)
     .fetch_optional(pool)
