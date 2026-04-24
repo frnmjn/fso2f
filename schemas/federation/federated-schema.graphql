@@ -3,17 +3,23 @@ schema {
   mutation: Mutation
 }
 
-type Query {
-  product(code: String!): SimpleProduct!
-  order(id: OrderId!): Order!
-  customer(id: ID!): Customer!
-}
+"""
+Implement the DateTime<Utc> scalar
 
-type SimpleProduct {
-  id: ID!
+The input/output is a string in RFC3339 format.
+"""
+scalar DateTime
+
+interface Product {
+  kind: String!
   code: String!
   description: String!
-  pippo: String!
+  id: ID!
+}
+
+type Query {
+  productById(id: ID!): Product
+  order(id: OrderId!): Order!
 }
 
 input CreateOrder {
@@ -28,12 +34,8 @@ input CreateOrderLine {
 
 type Customer {
   id: ID!
-  """This field uses @override to take control from the orders subgraph"""
   name: String!
   vat: String!
-  """New fields owned by customers subgraph"""
-  email: String!
-  phone: String
 }
 
 input CustomerInput {
@@ -59,12 +61,34 @@ scalar OrderId
 type OrderLine {
   lineNumber: Int!
   quantity: Int!
-  discount: Float
-  product: SimpleProduct!
+  product: Product!
 }
 
 enum OrderStatus {
   DRAFT
   CONFIRMED
   Cancelled
+}
+
+type DangerousProduct implements Product {
+  id: ID!
+  kind: String!
+  code: String!
+  description: String!
+  maxTemperature: Float!
+}
+
+type ExpiringProduct implements Product {
+  id: ID!
+  kind: String!
+  code: String!
+  description: String!
+  expirationDate: DateTime!
+}
+
+type StandardProduct implements Product {
+  id: ID!
+  kind: String!
+  code: String!
+  description: String!
 }

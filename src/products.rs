@@ -35,6 +35,21 @@ impl ProductQuery {
     }
 
     #[graphql(entity)]
+    async fn find_product_by_id(
+        &self,
+        ctx: &Context<'_>,
+        #[graphql(key)] id: ID,
+    ) -> async_graphql::Result<Product> {
+        let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
+        let uuid = Uuid::parse_str(id.as_str())
+            .map_err(|_| async_graphql::Error::new("Invalid product ID"))?;
+        let db_product = get_product_by_id(pool, uuid)
+            .await?
+            .ok_or_else(|| async_graphql::Error::new("Product not found"))?;
+        Ok(db_product.into())
+    }
+
+    #[graphql(entity)]
     async fn find_standard_product_by_id(
         &self,
         ctx: &Context<'_>,
@@ -82,6 +97,7 @@ impl ProductQuery {
 
 #[derive(Interface)]
 #[graphql(
+    field(name = "id", ty = "&ID"),
     field(name = "kind", ty = "String"),
     field(name = "code", ty = "String"),
     field(name = "description", ty = "String")

@@ -20,14 +20,6 @@ input CustomerInput {
 	vat: String!
 }
 
-type DangerousProduct implements Product @shareable {
-	id: ID!
-}
-
-type ExpiringProduct implements Product @shareable {
-	id: ID!
-}
-
 type Mutation {
 	createOrder(order: CreateOrder!): Order!
 }
@@ -54,16 +46,12 @@ enum OrderStatus {
 	Cancelled
 }
 
-interface Product {
+type Product @key(fields: "id") @interfaceObject {
 	id: ID!
 }
 
 type Query {
 	order(id: OrderId!): Order!
-}
-
-type StandardProduct implements Product @shareable {
-	id: ID!
 }
 
 """

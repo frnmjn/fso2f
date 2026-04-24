@@ -1,6 +1,5 @@
 use async_graphql::{
-    ComplexObject, Context, Enum, ID, InputObject, Interface, MergedObject, Object, SimpleObject,
-    scalar,
+    ComplexObject, Context, Enum, ID, InputObject, MergedObject, Object, SimpleObject, scalar,
 };
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -48,6 +47,11 @@ impl OrderQuery {
             name: db_order.customer_name,
             vat: db_order.customer_vat,
         })
+    }
+
+    #[graphql(entity)]
+    async fn find_product_by_id(&self, #[graphql(key)] id: ID) -> Product {
+        Product { id }
     }
 }
 
@@ -119,36 +123,16 @@ impl From<DbOrderLine> for OrderLine {
         Self {
             line_number: db_line.line_number,
             quantity: db_line.quantity,
-            product: Product::StandardProduct(StandardProduct {
+            product: Product {
                 id: ID::from(db_line.product_id.to_string()),
-            }),
+            },
         }
     }
 }
 
-#[derive(Interface)]
-#[graphql(field(name = "id", ty = "&ID"))]
-pub enum Product {
-    StandardProduct(StandardProduct),
-    DangerousProduct(DangerousProduct),
-    ExpiringProduct(ExpiringProduct),
-}
-
 #[derive(SimpleObject)]
-#[graphql(shareable)]
-pub struct StandardProduct {
-    pub id: ID,
-}
-
-#[derive(SimpleObject)]
-#[graphql(shareable)]
-pub struct DangerousProduct {
-    pub id: ID,
-}
-
-#[derive(SimpleObject)]
-#[graphql(shareable)]
-pub struct ExpiringProduct {
+#[graphql(interface_object)]
+pub struct Product {
     pub id: ID,
 }
 

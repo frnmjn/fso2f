@@ -21,7 +21,8 @@ type ExpiringProduct implements Product @key(fields: "id") {
 	expirationDate: DateTime!
 }
 
-interface Product {
+interface Product @key(fields: "id") {
+	id: ID!
 	kind: String!
 	code: String!
 	description: String!
