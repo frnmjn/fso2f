@@ -4,8 +4,9 @@ default_to_workspace = false
 # Development
 
 [tasks.install]
-description = "Install cargo-make if not already installed"
+description = "Install fso2f dev tools"
 script = '''
+cargo install --path . --bin fso2f
 npm -g install wgc
 '''
 
