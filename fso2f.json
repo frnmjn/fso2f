@@ -1,7 +1,7 @@
 {
   "exercises": [
     {
-      "name": "workshop",
+      "name": "00",
       "instructions": "Make the Test Green",
       "test": "dummy_test",
       "solution": "00-solution"

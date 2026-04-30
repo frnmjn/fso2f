@@ -48,7 +48,7 @@ fn task(verbose: bool) {
 
 fn load_exercise() -> String {
     if !std::path::Path::new(PROGRESS_FILE).exists() {
-        fs::write(PROGRESS_FILE, "workshop").expect("❌ Failed to create .fso2f.json");
+        fs::write(PROGRESS_FILE, "00").expect("❌ Failed to create .fso2f.json");
     }
     let content = fs::read_to_string(PROGRESS_FILE)
         .unwrap_or_else(|e| panic!("❌ Failed to read {}: {}", PROGRESS_FILE, e));
