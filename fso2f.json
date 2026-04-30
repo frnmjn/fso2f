@@ -1,0 +1,16 @@
+{
+  "exercises": [
+    {
+      "name": "00",
+      "instructions": "Make the Test Green",
+      "test": "dummy_test",
+      "solution": "00-solution"
+    },
+    {
+      "name": "01",
+      "instructions": "Make the Test Green Again",
+      "test": "failure_test",
+      "solution": "01-solution"
+    }
+  ]
+}

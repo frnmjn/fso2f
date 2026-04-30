@@ -24,7 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Generate fake customers subgraph schema
     let fake_customers_schema = Schema::new(
-        fake_customers::FakeCustomerQuery::default(),
+        fake_customers::FakeCustomerQuery,
         EmptyMutation,
         EmptySubscription,
     );
