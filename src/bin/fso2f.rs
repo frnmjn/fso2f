@@ -32,18 +32,19 @@ fn task(verbose: bool) {
     }
 }
 
-fn test(verbose: bool) {
-    let exercise = load_exercise();
-    checkout_branch(&exercise, verbose);
+fn test(_verbose: bool) {
+    let exercise_name = load_exercise();
 
-    let success = run_tests();
+    let exercises = load_exercises();
+    let exercise = exercises.iter().find(|e| e.name == exercise_name);
+    let test_filter = exercise.map(|e| e.test.as_str()).unwrap_or("");
+
+    let success = run_tests(test_filter);
 
     if success {
         println!("\n✅ All tests passed!");
 
-        let exercises = load_exercises();
-        let current = load_exercise();
-        let current_idx = exercises.iter().position(|e| e.name == current);
+        let current_idx = exercises.iter().position(|e| e.name == exercise_name);
 
         if let Some(idx) = current_idx {
             if idx + 1 < exercises.len() {
@@ -58,7 +59,10 @@ fn test(verbose: bool) {
                 if answer.is_empty() || answer == "y" || answer == "yes" {
                     fs::write(PROGRESS_FILE, &next.name)
                         .expect("❌ Failed to update progress file");
-                    println!("\n📝 Moved to exercise '{}'. Run `fso2f task` to see instructions.\n", next.name);
+                    println!(
+                        "\n📝 Moved to exercise '{}'. Run `fso2f task` to see instructions.\n",
+                        next.name
+                    );
                 }
             } else {
                 println!("\n🎉 You completed all exercises!");
@@ -102,10 +106,19 @@ fn checkout_branch(branch_name: &str, verbose: bool) {
     }
 }
 
-fn run_tests() -> bool {
-    println!("   Running: cargo test\n");
+fn run_tests(filter: &str) -> bool {
+    if filter.is_empty() {
+        println!("   Running: cargo test\n");
+    } else {
+        println!("   Running: cargo test {}\n", filter);
+    }
 
-    let status = Command::new("cargo").args(["test"]).status();
+    let mut args = vec!["test"];
+    if !filter.is_empty() {
+        args.push(filter);
+    }
+
+    let status = Command::new("cargo").args(&args).status();
 
     match status {
         Ok(s) => s.success(),
@@ -129,6 +142,7 @@ fn load_exercise() -> String {
 struct Exercise {
     name: String,
     instructions: String,
+    test: String,
 }
 
 #[derive(Debug, Deserialize)]

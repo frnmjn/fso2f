@@ -3,14 +3,12 @@
     {
       "name": "00",
       "instructions": "Make the Test Green",
-      "test": "test 1",
-      "hint": ""
+      "test": "dummy_test"
     },
     {
       "name": "01",
       "instructions": "Make the Test Green Again",
-      "test": "test 2",
-      "hint": ""
+      "test": "failure_test"
     }
   ]
 }
