@@ -1,14 +1,10 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::fs;
+use std::io::{self, Write};
 use std::process::Command;
 
-const PROGRESS_FILE: &str = ".fso2f.json";
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Progress {
-    current_branch: String,
-    instructions: String,
-}
+const PROGRESS_FILE: &str = ".fso2f";
+const EXERCISES_FILE: &str = "fso2f.json";
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -23,24 +19,51 @@ fn main() {
 }
 
 fn task(verbose: bool) {
-    let progress = load_progress();
-    checkout_branch(&progress.current_branch, verbose);
+    let exercise_name = load_exercise();
+    checkout_branch(&exercise_name, verbose);
 
-    if progress.instructions.is_empty() {
-        println!("📋 No instructions for this exercise.");
-    } else {
-        println!("\n📖 {}\n", progress.instructions);
+    let exercises = load_exercises();
+    match exercises.iter().find(|e| e.name == exercise_name) {
+        Some(ex) => println!("\n📖 {}\n", ex.instructions),
+        None => println!(
+            "\n⚠️  No instructions found for exercise '{}'\n",
+            exercise_name
+        ),
     }
 }
 
 fn test(verbose: bool) {
-    let progress = load_progress();
-    checkout_branch(&progress.current_branch, verbose);
+    let exercise = load_exercise();
+    checkout_branch(&exercise, verbose);
 
     let success = run_tests();
 
     if success {
         println!("\n✅ All tests passed!");
+
+        let exercises = load_exercises();
+        let current = load_exercise();
+        let current_idx = exercises.iter().position(|e| e.name == current);
+
+        if let Some(idx) = current_idx {
+            if idx + 1 < exercises.len() {
+                let next = &exercises[idx + 1];
+                print!("\n👉 Proceed to next exercise '{}'? [Y/n] ", next.name);
+                io::stdout().flush().unwrap();
+
+                let mut input = String::new();
+                io::stdin().read_line(&mut input).unwrap();
+                let answer = input.trim().to_lowercase();
+
+                if answer.is_empty() || answer == "y" || answer == "yes" {
+                    fs::write(PROGRESS_FILE, &next.name)
+                        .expect("❌ Failed to update progress file");
+                    println!("\n📝 Moved to exercise '{}'. Run `fso2f task` to see instructions.\n", next.name);
+                }
+            } else {
+                println!("\n🎉 You completed all exercises!");
+            }
+        }
     } else {
         println!("\n❌ Tests failed. Fix the code and try again!");
         println!("   Run `fso2f test` to re-check.\n");
@@ -93,11 +116,32 @@ fn run_tests() -> bool {
     }
 }
 
-fn load_progress() -> Progress {
+fn load_exercise() -> String {
+    if !std::path::Path::new(PROGRESS_FILE).exists() {
+        fs::write(PROGRESS_FILE, "00").expect("❌ Failed to create .fso2f.json");
+    }
     let content = fs::read_to_string(PROGRESS_FILE)
         .unwrap_or_else(|e| panic!("❌ Failed to read {}: {}", PROGRESS_FILE, e));
-    serde_json::from_str(&content)
-        .unwrap_or_else(|e| panic!("❌ Failed to parse {}: {}", PROGRESS_FILE, e))
+    content.trim().to_string()
+}
+
+#[derive(Debug, Deserialize)]
+struct Exercise {
+    name: String,
+    instructions: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct ExercisesFile {
+    exercises: Vec<Exercise>,
+}
+
+fn load_exercises() -> Vec<Exercise> {
+    let content = fs::read_to_string(EXERCISES_FILE)
+        .unwrap_or_else(|e| panic!("❌ Failed to read {}: {}", EXERCISES_FILE, e));
+    let file: ExercisesFile = serde_json::from_str(&content)
+        .unwrap_or_else(|e| panic!("❌ Failed to parse {}: {}", EXERCISES_FILE, e));
+    file.exercises
 }
 
 fn print_help() {
@@ -111,7 +155,7 @@ USAGE:
     fso2f --help       Show this help message
 
 PROGRESS:
-    Progress is saved in .fso2f.json.
+    Exercise name is saved in .fso2f.json.
 "#
     );
 }

@@ -4,9 +4,8 @@ default_to_workspace = false
 # Development
 
 [tasks.install]
-description = "Install fso2f dev tools"
+description = "Install WonderGraph cli"
 script = '''
-cargo install --path . --bin fso2f
 npm -g install wgc
 '''
 
@@ -14,6 +13,16 @@ npm -g install wgc
 description = "Run clippy lints"
 command = "cargo"
 args = ["clippy", "--all-targets", "--", "-D", "warnings"]
+
+[tasks.task]
+description = "Run fso2f task"
+command = "cargo"
+args = ["run", "--bin", "fso2f", "--", "task"]
+
+[tasks.test]
+description = "Run fso2f test"
+command = "cargo"
+args = ["run", "--bin", "fso2f", "--", "test"]
 
 # Local Federation
 
