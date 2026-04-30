@@ -94,6 +94,7 @@ impl ProductQuery {
     }
 }
 
+#[allow(clippy::duplicated_attributes)]
 #[derive(Interface)]
 #[graphql(
     field(name = "id", ty = "&ID"),
@@ -213,7 +214,7 @@ impl Subscription {
                     products.push(ProductKind::ExpiringProduct(ExpiringProduct {
                         id: ID::from(Uuid::new_v4().to_string()),
                         kind: "expiring".to_string(),
-                        code: format!("EXP{}", Uuid::new_v4().to_string()),
+                        code: format!("EXP-{}", Uuid::new_v4()),
                         description: "A newly added expiring product".to_string(),
                         expiration_date: Utc::now() + chrono::Duration::days(30),
                     }));
@@ -221,7 +222,7 @@ impl Subscription {
                     products.push(ProductKind::DangerousProduct(DangerousProduct {
                         id: ID::from(Uuid::new_v4().to_string()),
                         kind: "dangerous".to_string(),
-                        code: format!("DANG{}", Uuid::new_v4().to_string()),
+                        code: format!("DANG-{}", Uuid::new_v4()),
                         description: "A newly added dangerous product".to_string(),
                         max_temperature: 100.0,
                     }));

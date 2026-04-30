@@ -6,6 +6,19 @@ use std::process::Command;
 const PROGRESS_FILE: &str = ".fso2f";
 const EXERCISES_FILE: &str = "fso2f.json";
 
+#[derive(Debug, Deserialize)]
+struct Exercise {
+    name: String,
+    instructions: String,
+    test: String,
+    solution: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct ExercisesFile {
+    exercises: Vec<Exercise>,
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     let verbose = args.iter().any(|a| a == "-v" || a == "--verbose");
@@ -14,6 +27,7 @@ fn main() {
     match cmd.map(|s| s.as_str()) {
         Some("task") => task(verbose),
         Some("test") => test(verbose),
+        Some("solution") => solution(verbose),
         _ => print_help(),
     }
 }
@@ -29,6 +43,54 @@ fn task(verbose: bool) {
             "\n⚠️  No instructions found for exercise '{}'\n",
             exercise_name
         ),
+    }
+}
+
+fn load_exercise() -> String {
+    if !std::path::Path::new(PROGRESS_FILE).exists() {
+        fs::write(PROGRESS_FILE, "workshop").expect("❌ Failed to create .fso2f.json");
+    }
+    let content = fs::read_to_string(PROGRESS_FILE)
+        .unwrap_or_else(|e| panic!("❌ Failed to read {}: {}", PROGRESS_FILE, e));
+    content.trim().to_string()
+}
+
+fn load_exercises() -> Vec<Exercise> {
+    let content = fs::read_to_string(EXERCISES_FILE)
+        .unwrap_or_else(|e| panic!("❌ Failed to read {}: {}", EXERCISES_FILE, e));
+    let file: ExercisesFile = serde_json::from_str(&content)
+        .unwrap_or_else(|e| panic!("❌ Failed to parse {}: {}", EXERCISES_FILE, e));
+    file.exercises
+}
+
+fn checkout_branch(branch_name: &str, verbose: bool) {
+    let output = Command::new("git").args(["checkout", branch_name]).output();
+
+    match output {
+        Ok(o) if o.status.success() => {
+            if verbose {
+                let stdout = String::from_utf8_lossy(&o.stdout);
+                let stderr = String::from_utf8_lossy(&o.stderr);
+                if !stdout.is_empty() {
+                    print!("{}", stdout);
+                }
+                if !stderr.is_empty() {
+                    eprint!("{}", stderr);
+                }
+            }
+        }
+        Ok(o) => {
+            eprintln!(
+                "❌ Failed to checkout branch: {}\n{}",
+                branch_name,
+                String::from_utf8_lossy(&o.stderr)
+            );
+            std::process::exit(1);
+        }
+        Err(e) => {
+            eprintln!("❌ Failed to run git checkout: {}", e);
+            std::process::exit(1);
+        }
     }
 }
 
@@ -75,37 +137,6 @@ fn test(_verbose: bool) {
     }
 }
 
-fn checkout_branch(branch_name: &str, verbose: bool) {
-    let output = Command::new("git").args(["checkout", branch_name]).output();
-
-    match output {
-        Ok(o) if o.status.success() => {
-            if verbose {
-                let stdout = String::from_utf8_lossy(&o.stdout);
-                let stderr = String::from_utf8_lossy(&o.stderr);
-                if !stdout.is_empty() {
-                    print!("{}", stdout);
-                }
-                if !stderr.is_empty() {
-                    eprint!("{}", stderr);
-                }
-            }
-        }
-        Ok(o) => {
-            eprintln!(
-                "❌ Failed to checkout branch: {}\n{}",
-                branch_name,
-                String::from_utf8_lossy(&o.stderr)
-            );
-            std::process::exit(1);
-        }
-        Err(e) => {
-            eprintln!("❌ Failed to run git checkout: {}", e);
-            std::process::exit(1);
-        }
-    }
-}
-
 fn run_tests(filter: &str) -> bool {
     if filter.is_empty() {
         println!("   Running: cargo test\n");
@@ -129,33 +160,20 @@ fn run_tests(filter: &str) -> bool {
     }
 }
 
-fn load_exercise() -> String {
-    if !std::path::Path::new(PROGRESS_FILE).exists() {
-        fs::write(PROGRESS_FILE, "00").expect("❌ Failed to create .fso2f.json");
+fn solution(verbose: bool) {
+    let exercise_name = load_exercise();
+    let exercises = load_exercises();
+
+    match exercises.iter().find(|e| e.name == exercise_name) {
+        Some(ex) => {
+            checkout_branch(&ex.solution, verbose);
+            println!("\n✅ Switched to solution branch '{}'\n", ex.solution);
+        }
+        None => {
+            eprintln!("❌ No solution found for exercise '{}'", exercise_name);
+            std::process::exit(1);
+        }
     }
-    let content = fs::read_to_string(PROGRESS_FILE)
-        .unwrap_or_else(|e| panic!("❌ Failed to read {}: {}", PROGRESS_FILE, e));
-    content.trim().to_string()
-}
-
-#[derive(Debug, Deserialize)]
-struct Exercise {
-    name: String,
-    instructions: String,
-    test: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct ExercisesFile {
-    exercises: Vec<Exercise>,
-}
-
-fn load_exercises() -> Vec<Exercise> {
-    let content = fs::read_to_string(EXERCISES_FILE)
-        .unwrap_or_else(|e| panic!("❌ Failed to read {}: {}", EXERCISES_FILE, e));
-    let file: ExercisesFile = serde_json::from_str(&content)
-        .unwrap_or_else(|e| panic!("❌ Failed to parse {}: {}", EXERCISES_FILE, e));
-    file.exercises
 }
 
 fn print_help() {

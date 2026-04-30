@@ -24,6 +24,11 @@ description = "Run fso2f test"
 command = "cargo"
 args = ["run", "--bin", "fso2f", "--", "test"]
 
+[tasks.solution]
+description = "Checkout solution branch for current exercise"
+command = "cargo"
+args = ["run", "--bin", "fso2f", "--", "solution"]
+
 # Local Federation
 
 [tasks.wgc-build-router]
@@ -209,6 +214,9 @@ echo "Available tasks:"
 echo "Development:"
 echo "  cargo make install                                  - Install wgc"
 echo "  cargo make clippy                                   - Run lints"
+echo "  cargo make task                                     - Show current exercise instructions"
+echo "  cargo make test                                     - Run tests for current exercise"
+echo "  cargo make solution                                 - Checkout solution branch"
 echo ""
 echo "Local Federation:"
 echo "  cargo make wgc-build-router                         - Build router configuration"
