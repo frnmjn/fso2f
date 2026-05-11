@@ -1,75 +1,47 @@
 # fso2f - GraphQL Federation Workshop
 
-## Quick Start
+<p align="center">
+  <img src="assets/logo.svg" alt="fso2f logo" width="400"/>
+</p>
 
-### Using cargo-make (recommended)
+## Prerequisite
+
+### Cargo-make installed
 
 Install cargo-make:
 ```bash
 cargo install cargo-make
 ```
 
-Run subgraphs with Docker:
+### Docker installed
+
+Follow your operating system to [install Docker](https://docs.docker.com/engine/install/)
+
+### Cosmo Wundergraph Account
+
+Create an account on [cosmo wundergraph](https://cosmo.wundergraph.com/)
+
+## Workshop Runner
+
+The workshop is structured as a series of exercises. A small CLI tool (`fso2f`) manages your progress:
+
+- `cargo make task` — Shows the instructions for the current exercise and checks out the corresponding branch
+- `cargo make test` — Runs the tests for the current exercise. If all pass, it asks whether to advance to the next one
+- `cargo make solution` — Checks out the branch with the solution for the current exercise
+
+Your current exercise is stored in the `.fso2f` file (git-ignored). The exercise definitions (instructions, test name, solution branch) live in `fso2f.json`.
+
+## Available Commands
+
 ```bash
-cargo make docker-up
+cargo make help
 ```
-
-Run subgraphs locally:
-```bash
-# Start PostgreSQL first
-cargo make db-up
-
-# In separate terminals:
-cargo make dev-products
-cargo make dev-orders
-```
-
-### Available Commands
-
-**Development:**
-- `cargo make dev-products` - Run products subgraph
-- `cargo make dev-orders` - Run orders subgraph
-- `cargo make export-schemas` - Export GraphQL schemas
-
-**Building:**
-- `cargo make build-all` - Build both subgraphs
-- `cargo make build-products` - Build products subgraph
-- `cargo make build-orders` - Build orders subgraph
-
-**Docker:**
-- `cargo make docker-up` - Start all services
-- `cargo make docker-up-detached` - Start in background
-- `cargo make docker-down` - Stop all services
-- `cargo make docker-restart-products` - Restart products
-- `cargo make docker-restart-orders` - Restart orders
-- `cargo make docker-logs` - View logs
-
-**Code Quality:**
-- `cargo make fmt` - Format code
-- `cargo make check` - Check code
-- `cargo make clippy` - Run lints
-- `cargo make test` - Run tests
-
-**Help:**
-- `cargo make help` - Show all available tasks
 
 ## Endpoints
 
+- **Federated graph** http://localhost:5000/graphql
 - **Products subgraph:** http://localhost:3001/graphql
 - **Orders subgraph:** http://localhost:3002/graphql
-- **PostgreSQL:** localhost:5432
+- **Customers subgraph** http://localhost:3003/graphql
+- **PostgreSQL:** jdbc:postgresql://localhost:5432/fso2f
 
-## Manual Commands (without cargo-make)
-
-```bash
-# Run subgraphs
-cargo run --bin products-subgraph
-cargo run --bin orders-subgraph
-
-# Export schemas
-cargo run --bin export-schemas
-
-# Docker
-docker compose up
-docker compose down
-```
