@@ -13,7 +13,20 @@ const QUERY: &str = r#"
                 product {
                     id
                     kind
+                    code
+                    description
+                    ... on DangerousProduct {
+                        maxTemperature
+                    }
+                    ... on ExpiringProduct {
+                        expirationDate
+                    }
                 }
+            }
+            customer {
+                id
+                name
+                vat
             }
         }
     }
@@ -50,7 +63,9 @@ async fn queries_federated_order() {
                     "quantity": 5,
                     "product": {
                         "id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
-                        "kind": "lol",
+                        "kind": "standard",
+                        "code": "WIDGET-001",
+                        "description": "Widget",
                     },
                 },
                 {
@@ -58,10 +73,18 @@ async fn queries_federated_order() {
                     "quantity": 10,
                     "product": {
                         "id": "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f",
-                        "kind": "lol",
+                        "kind": "dangerous",
+                        "code": "PISTOL-003",
+                        "description": "Pistol",
+                        "maxTemperature": 75.0,
                     },
                 },
             ],
+            "customer": {
+                "id": "11111111-1111-4111-8111-111111111111",
+                "name": "Acme Srl (From Order)",
+                "vat": "IT01234567890",
+            },
         }),
     );
 }
