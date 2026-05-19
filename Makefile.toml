@@ -58,7 +58,7 @@ echo "✅ Federated schema exported to schemas/federation/federated-schema.graph
 [tasks.local]
 description = "Run all subgraphs locally with local router"
 script = '''
-docker compose down
+docker compose --profile local --profile control-plane down --remove-orphans -t 0
 cargo make export-schemas
 cargo make wgc-build-router
 docker compose --profile local up -d
@@ -133,7 +133,7 @@ args = [
 [tasks.control-plane]
 description = "Run all subgraphs local with cloud control plane"
 script = '''
-docker compose down
+docker compose --profile local --profile control-plane down --remove-orphans -t 0
 docker compose --profile control-plane up -d
 '''
 
