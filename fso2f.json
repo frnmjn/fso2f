@@ -2,15 +2,75 @@
   "exercises": [
     {
       "name": "00",
-      "instructions": "Make the Test Green",
-      "test": "dummy_test",
-      "solution": "00-solution"
+      "instructions": "Implement an Axum HTTP server responding 200 on GET /",
+      "test": "health_check",
+      "solution": ""
     },
     {
       "name": "01",
-      "instructions": "Make the Test Green Again",
-      "test": "failure_test",
-      "solution": "01-solution"
+      "instructions": "Write the first GraphQL query for a Product on POST /graphql",
+      "test": "query_product",
+      "solution": ""
+    },
+    {
+      "name": "02",
+      "instructions": "Add a computed property to the Product type",
+      "test": "complex_object",
+      "solution": ""
+    },
+    {
+      "name": "03",
+      "instructions": "Introduce qyerying Orders with MergedObject",
+      "test": "merged_object",
+      "solution": ""
+    },
+    {
+      "name": "04",
+      "instructions": "Make Order IDs scalars",
+      "test": "scalars",
+      "solution": ""
+    },
+    {
+      "name": "05",
+      "instructions": "Add a nested Vec<OrderLine> in Order",
+      "test": "order_lines",
+      "solution": ""
+    },
+    {
+      "name": "06",
+      "instructions": "Include an optional discount field in each OrderLine",
+      "test": "optional_discounts",
+      "solution": ""
+    },
+    {
+      "name": "07",
+      "instructions": "Add a status enumeration for the Order",
+      "test": "status_enum",
+      "solution": ""
+    },
+    {
+      "name": "08",
+      "instructions": "Make Product a union interface, exposing some shared fields and some fragments",
+      "test": "union_interface",
+      "solution": ""
+    },
+    {
+      "name": "09",
+      "instructions": "Order to include a Customer field",
+      "test": "order_customer",
+      "solution": ""
+    },
+    {
+      "name": "10",
+      "instructions": "Implement a mutation to register a new Order, defining the necessary InputObjects",
+      "test": "create_new_order",
+      "solution": ""
+    },
+    {
+      "name": "11",
+      "instructions": "Split the monolith in two services, exposing a federated schema",
+      "test": "federated_order",
+      "solution": ""
     }
   ]
 }
