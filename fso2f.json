@@ -71,6 +71,12 @@
       "instructions": "Split the monolith in two services, exposing a federated schema",
       "test": "federated_order",
       "solution": ""
+    },
+    {
+      "name": "12",
+      "instructions": "Introduce extra fields in the Customer, coming from a feature flagged subschema",
+      "test": "federated_customer",
+      "solution": ""
     }
   ]
 }
