@@ -1,81 +1,69 @@
 {
   "exercises": [
     {
-      "name": "00",
-      "instructions": "Implement an Axum HTTP server responding 200 on GET /",
-      "test": "health_check",
-      "solution": ""
-    },
-    {
-      "name": "01",
+      "name": "",
       "instructions": "Write the first GraphQL query for a Product on POST /graphql",
-      "test": "query_product",
+      "test": "simple_object",
       "solution": ""
     },
     {
-      "name": "02",
+      "name": "",
       "instructions": "Add a computed property to the Product type",
       "test": "complex_object",
       "solution": ""
     },
     {
-      "name": "03",
-      "instructions": "Introduce qyerying Orders with MergedObject",
+      "name": "",
+      "instructions": "Introduce querying Orders with MergedObject",
       "test": "merged_object",
       "solution": ""
     },
     {
-      "name": "04",
-      "instructions": "Make Order IDs scalars",
-      "test": "scalars",
-      "solution": ""
-    },
-    {
-      "name": "05",
+      "name": "",
       "instructions": "Add a nested Vec<OrderLine> in Order",
-      "test": "order_lines",
+      "test": "list",
       "solution": ""
     },
     {
-      "name": "06",
+      "name": "",
       "instructions": "Include an optional discount field in each OrderLine",
-      "test": "optional_discounts",
+      "test": "optional",
       "solution": ""
     },
     {
-      "name": "07",
+      "name": "",
       "instructions": "Add a status enumeration for the Order",
-      "test": "status_enum",
+      "test": "enum",
       "solution": ""
     },
     {
-      "name": "08",
+      "name": "",
+      "instructions": "Order to include a Customer field",
+      "test": "struct",
+      "solution": ""
+    },
+    {
+      "name": "",
       "instructions": "Make Product a union interface, exposing some shared fields and some fragments",
       "test": "union_interface",
       "solution": ""
     },
     {
-      "name": "09",
-      "instructions": "Order to include a Customer field",
-      "test": "order_customer",
-      "solution": ""
-    },
-    {
-      "name": "10",
+      "name": "",
       "instructions": "Implement a mutation to register a new Order, defining the necessary InputObjects",
-      "test": "create_new_order",
+      "test": "one_of",
       "solution": ""
     },
     {
-      "name": "11",
+      "name": "",
       "instructions": "Split the monolith in two services, exposing a federated schema",
-      "test": "federated_order",
+      "test": "federated_schema",
       "solution": ""
     },
     {
-      "name": "12",
+      "name": "",
       "instructions": "Introduce extra fields in the Customer, coming from a feature flagged subschema",
-      "test": "federated_customer",
+      "test": "federated_subgraph",
       "solution": ""
     }
   ]
