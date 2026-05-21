@@ -4,6 +4,18 @@ version = "0.1.0"
 edition = "2024"
 
 [[bin]]
+name = "00-monolith"
+path = "src/bin/00-monolith.rs"
+
+[[bin]]
+name = "01-simple-object"
+path = "src/bin/01-simple-object.rs"
+
+[[bin]]
+name = "02-complex-object"
+path = "src/bin/02-complex-object.rs"
+
+[[bin]]
 name = "products-subgraph"
 path = "src/bin/products-subgraph.rs"
 
