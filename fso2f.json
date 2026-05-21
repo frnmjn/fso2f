@@ -1,16 +1,70 @@
 {
   "exercises": [
     {
-      "name": "00",
-      "instructions": "Make the Test Green",
-      "test": "dummy_test",
-      "solution": "00-solution"
+      "name": "",
+      "instructions": "Write the first GraphQL query for a Product on POST /graphql",
+      "test": "simple_object",
+      "solution": ""
     },
     {
-      "name": "01",
-      "instructions": "Make the Test Green Again",
-      "test": "failure_test",
-      "solution": "01-solution"
+      "name": "",
+      "instructions": "Add a computed property to the Product type",
+      "test": "complex_object",
+      "solution": ""
+    },
+    {
+      "name": "",
+      "instructions": "Introduce querying Orders with MergedObject",
+      "test": "merged_object",
+      "solution": ""
+    },
+    {
+      "name": "",
+      "instructions": "Add a nested Vec<OrderLine> in Order",
+      "test": "list",
+      "solution": ""
+    },
+    {
+      "name": "",
+      "instructions": "Include an optional discount field in each OrderLine",
+      "test": "optional",
+      "solution": ""
+    },
+    {
+      "name": "",
+      "instructions": "Add a status enumeration for the Order",
+      "test": "enum",
+      "solution": ""
+    },
+    {
+      "name": "",
+      "instructions": "Order to include a Customer field",
+      "test": "struct",
+      "solution": ""
+    },
+    {
+      "name": "",
+      "instructions": "Make Product a union interface, exposing some shared fields and some fragments",
+      "test": "union_interface",
+      "solution": ""
+    },
+    {
+      "name": "",
+      "instructions": "Implement a mutation to register a new Order, defining the necessary InputObjects",
+      "test": "one_of",
+      "solution": ""
+    },
+    {
+      "name": "",
+      "instructions": "Split the monolith in two services, exposing a federated schema",
+      "test": "federated_schema",
+      "solution": ""
+    },
+    {
+      "name": "",
+      "instructions": "Introduce extra fields in the Customer, coming from a feature flagged subschema",
+      "test": "federated_subgraph",
+      "solution": ""
     }
   ]
 }
