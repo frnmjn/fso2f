@@ -19,7 +19,7 @@ const MUTATION: &str = r#"
 "#;
 
 #[tokio::test]
-async fn queries_federated_product() {
+async fn creates_a_product_via_mutation() {
     let request = Request::new(MUTATION).variables(Variables::from_json(json!({
         "product": {
             "expiringProduct": {
