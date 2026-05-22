@@ -48,7 +48,7 @@ fn task(verbose: bool) {
 
 fn load_exercise() -> String {
     if !std::path::Path::new(PROGRESS_FILE).exists() {
-        fs::write(PROGRESS_FILE, "00").expect("❌ Failed to create .fso2f.json");
+        fs::write(PROGRESS_FILE, "01").expect("❌ Failed to create .fso2f.json");
     }
     let content = fs::read_to_string(PROGRESS_FILE)
         .unwrap_or_else(|e| panic!("❌ Failed to read {}: {}", PROGRESS_FILE, e));
@@ -141,12 +141,13 @@ fn run_tests(filter: &str) -> bool {
     if filter.is_empty() {
         println!("   Running: cargo test\n");
     } else {
-        println!("   Running: cargo test {}\n", filter);
+        println!("   Running: cargo test --test {}\n", filter);
     }
 
-    let mut args = vec!["test"];
+    let mut args = vec!["test".to_string()];
     if !filter.is_empty() {
-        args.push(filter);
+        args.push("--test".to_string());
+        args.push(filter.to_string());
     }
 
     let status = Command::new("cargo").args(&args).status();

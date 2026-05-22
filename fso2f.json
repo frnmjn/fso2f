@@ -1,27 +1,27 @@
 {
   "exercises": [
     {
-      "name": "",
+      "name": "01",
       "instructions": "Write the first GraphQL query for a Product on POST /graphql",
-      "test": "simple_object",
+      "test": "_01_simple_object",
       "solution": ""
     },
     {
-      "name": "",
+      "name": "02",
       "instructions": "Add a computed property to the Product type",
-      "test": "complex_object",
+      "test": "_02_complex_object",
       "solution": ""
     },
     {
-      "name": "",
+      "name": "03",
       "instructions": "Introduce querying Orders with MergedObject",
-      "test": "merged_object",
+      "test": "_03_merged_object",
       "solution": ""
     },
     {
-      "name": "",
+      "name": "04",
       "instructions": "Add a nested Vec<OrderLine> in Order",
-      "test": "list",
+      "test": "_04_list",
       "solution": ""
     },
     {

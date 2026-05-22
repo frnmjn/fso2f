@@ -1,13 +1,12 @@
 use async_graphql::{EmptySubscription, Schema, http::GraphiQLSource};
-use async_graphql_axum::{GraphQL, GraphQLSubscription};
+use async_graphql_axum::GraphQL;
 use axum::{
     Router,
-    extract::State,
     response::{Html, IntoResponse},
     routing::get,
 };
 use fso2f::schema::orders::{Mutation, Query};
-use sqlx::{Pool, Postgres, postgres::PgPoolOptions};
+use sqlx::postgres::PgPoolOptions;
 
 #[tokio::main]
 async fn main() -> Result<(), sqlx::Error> {
@@ -28,12 +27,11 @@ async fn main() -> Result<(), sqlx::Error> {
 
     // build our application with a route
     let app = Router::new()
-        .route("/", get(root))
+        .route("/", get(|| async { "ok" }))
         .route(
             "/graphql",
             get(graphiql).post_service(GraphQL::new(schema.clone())),
         )
-        .route_service("/ws", GraphQLSubscription::new(schema.clone()))
         .with_state(pool.clone());
 
     tracing::info!("🚀 Orders subgraph running at http://0.0.0.0:3002/graphql");
@@ -42,15 +40,6 @@ async fn main() -> Result<(), sqlx::Error> {
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3002").await.unwrap();
     axum::serve(listener, app).await.unwrap();
     Ok(())
-}
-
-// basic handler that responds with a static string
-async fn root(State(pool): State<Pool<Postgres>>) -> String {
-    let (msg,): (String,) = sqlx::query_as("SELECT 'Orders Subgraph'")
-        .fetch_one(&pool)
-        .await
-        .unwrap_or(("Error connecting to database".to_string(),));
-    msg
 }
 
 async fn graphiql() -> impl IntoResponse {
