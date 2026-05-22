@@ -7,15 +7,15 @@
       "solution": ""
     },
     {
-      "name": "",
+      "name": "02",
       "instructions": "Add a computed property to the Product type",
       "test": "_02_complex_object",
       "solution": ""
     },
     {
-      "name": "",
+      "name": "03",
       "instructions": "Introduce querying Orders with MergedObject",
-      "test": "merged_object",
+      "test": "_03_merged_object",
       "solution": ""
     },
     {
