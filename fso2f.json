@@ -1,15 +1,15 @@
 {
   "exercises": [
     {
-      "name": "",
+      "name": "01",
       "instructions": "Write the first GraphQL query for a Product on POST /graphql",
-      "test": "simple_object",
+      "test": "_01_simple_object",
       "solution": ""
     },
     {
       "name": "",
       "instructions": "Add a computed property to the Product type",
-      "test": "complex_object",
+      "test": "_02_complex_object",
       "solution": ""
     },
     {

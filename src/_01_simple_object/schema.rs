@@ -1,4 +1,4 @@
-use async_graphql::{Object, SimpleObject};
+use async_graphql::{ID, Object, SimpleObject};
 use uuid::Uuid;
 
 pub struct QueryRoot;
@@ -7,7 +7,7 @@ pub struct QueryRoot;
 impl QueryRoot {
     async fn product(&self, code: String) -> Product {
         Product {
-            id: Uuid::new_v4(),
+            id: ID::from(Uuid::new_v4().to_string()),
             code,
             description: "A sample product".to_string(),
         }
@@ -16,7 +16,7 @@ impl QueryRoot {
 
 #[derive(SimpleObject)]
 struct Product {
-    id: Uuid,
+    id: ID,
     code: String,
     description: String,
 }
