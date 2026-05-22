@@ -5,7 +5,11 @@ use std::fs;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Generate products subgraph schema
-    let products_schema = Schema::new(products::Query::default(), EmptyMutation, EmptySubscription);
+    let products_schema = Schema::new(
+        products::Query::default(),
+        products::Mutation::default(),
+        EmptySubscription,
+    );
 
     let products_sdl = products_schema.sdl_with_options(SDLExportOptions::new().federation());
     fs::write("schemas/products.graphql", products_sdl)?;

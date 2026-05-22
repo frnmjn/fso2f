@@ -14,21 +14,7 @@ services:
       timeout: 4s
       retries: 5
     volumes:
-      - postgres:/var/lib/postgresql/data
-
-  migrate:
-    image: rust:1.86
-    working_dir: /app
-    command: sh -c "cargo install sqlx-cli --no-default-features --features postgres --locked && sqlx database reset -y && sqlx migrate run"
-    environment:
-      DATABASE_URL: postgres://fso2f:fso2f@postgres:5432/fso2f
-    volumes:
-      - .:/app
-      - cargo-cache:/usr/local/cargo/registry
-      - target-cache:/app/target
-    depends_on:
-      postgres:
-        condition: service_healthy
+      - ./migrations:/docker-entrypoint-initdb.d
 
   products-subgraph:
     image: rust:1.84
@@ -44,8 +30,8 @@ services:
       - cargo-cache:/usr/local/cargo/registry
       - target-cache:/app/target
     depends_on:
-      migrate:
-        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
 
   orders-subgraph:
     image: rust:1.84
@@ -61,8 +47,8 @@ services:
       - cargo-cache:/usr/local/cargo/registry
       - target-cache:/app/target
     depends_on:
-      migrate:
-        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
 
   customers-subgraph:
     image: rust:1.84
@@ -78,8 +64,8 @@ services:
       - cargo-cache:/usr/local/cargo/registry
       - target-cache:/app/target
     depends_on:
-      migrate:
-        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
     profiles:
       - control-plane
 
@@ -113,6 +99,5 @@ services:
   
 
 volumes:
-  postgres: {}
   cargo-cache: {}
   target-cache: {}

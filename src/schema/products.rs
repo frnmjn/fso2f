@@ -1,13 +1,16 @@
 use std::time::Duration;
 
-use async_graphql::{Context, ID, Interface, MergedObject, Object, SimpleObject, Subscription};
+use async_graphql::{
+    Context, ID, InputObject, Interface, MergedObject, Object, OneofObject, SimpleObject,
+    Subscription,
+};
 use chrono::{DateTime, Utc};
 use tokio_stream::{Stream, StreamExt};
 use uuid::Uuid;
 
 use crate::db::products::{
     DbDangerousProduct, DbExpiringProduct, DbProduct, DbProductKind, get_dangerous_product_by_id,
-    get_expiring_product_by_id, get_product_by_id, get_standard_product_by_id,
+    get_expiring_product_by_id, get_product_by_id, get_standard_product_by_id, insert_product,
 };
 
 #[derive(MergedObject, Default)]
@@ -191,8 +194,102 @@ impl From<DbProductKind> for ProductKind {
     }
 }
 
+#[derive(MergedObject, Default)]
+pub struct Mutation(ProductMutation);
+
 #[derive(Default)]
-pub struct Mutation;
+pub struct ProductMutation;
+
+#[Object]
+impl ProductMutation {
+    async fn create_product(
+        &self,
+        ctx: &Context<'_>,
+        product: CreateProductKind,
+    ) -> async_graphql::Result<ProductKind> {
+        let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
+        let id = Uuid::new_v4();
+        let persisted = insert_product(pool, product.into_write_model(id)).await?;
+        Ok(persisted.into())
+    }
+}
+
+#[allow(clippy::duplicated_attributes)]
+#[derive(OneofObject)]
+pub enum CreateProductKind {
+    Product(CreateProduct),
+    DangerousProduct(CreateDangerousProduct),
+    ExpiringProduct(CreateExpiringProduct),
+}
+
+impl CreateProductKind {
+    pub fn into_write_model(self, id: Uuid) -> DbProductKind {
+        match self {
+            CreateProductKind::Product(p) => DbProductKind::Product(p.into_write_model(id)),
+            CreateProductKind::DangerousProduct(p) => {
+                DbProductKind::Dangerous(p.into_write_model(id))
+            }
+            CreateProductKind::ExpiringProduct(p) => {
+                DbProductKind::Expiring(p.into_write_model(id))
+            }
+        }
+    }
+}
+
+#[derive(InputObject)]
+pub struct CreateProduct {
+    pub kind: String,
+    pub code: String,
+    pub description: String,
+}
+
+impl CreateProduct {
+    pub fn into_write_model(self, id: Uuid) -> DbProduct {
+        DbProduct {
+            id,
+            code: self.code,
+            description: self.description,
+        }
+    }
+}
+
+#[derive(InputObject)]
+pub struct CreateDangerousProduct {
+    pub kind: String,
+    pub code: String,
+    pub description: String,
+    pub max_temperature: f64,
+}
+
+impl CreateDangerousProduct {
+    pub fn into_write_model(self, id: Uuid) -> DbDangerousProduct {
+        DbDangerousProduct {
+            id,
+            code: self.code,
+            description: self.description,
+            max_temperature: self.max_temperature,
+        }
+    }
+}
+
+#[derive(InputObject)]
+pub struct CreateExpiringProduct {
+    pub kind: String,
+    pub code: String,
+    pub description: String,
+    pub expiration_date: DateTime<Utc>,
+}
+
+impl CreateExpiringProduct {
+    pub fn into_write_model(self, id: Uuid) -> DbExpiringProduct {
+        DbExpiringProduct {
+            id,
+            code: self.code,
+            description: self.description,
+            expiration_date: self.expiration_date,
+        }
+    }
+}
 
 #[derive(Default)]
 pub struct Subscription;

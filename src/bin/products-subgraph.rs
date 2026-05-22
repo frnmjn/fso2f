@@ -1,4 +1,4 @@
-use async_graphql::{EmptyMutation, EmptySubscription, Schema, http::GraphiQLSource};
+use async_graphql::{EmptySubscription, Schema, http::GraphiQLSource};
 use async_graphql_axum::{GraphQL, GraphQLSubscription};
 use axum::{
     Router,
@@ -6,7 +6,7 @@ use axum::{
     response::{Html, IntoResponse},
     routing::get,
 };
-use fso2f::schema::products::Query;
+use fso2f::schema::products::{Mutation, Query};
 use sqlx::{Pool, Postgres, postgres::PgPoolOptions};
 
 #[tokio::main]
@@ -22,7 +22,7 @@ async fn main() -> Result<(), sqlx::Error> {
         .connect(&database_url)
         .await?;
 
-    let schema = Schema::build(Query::default(), EmptyMutation, EmptySubscription)
+    let schema = Schema::build(Query::default(), Mutation::default(), EmptySubscription)
         .data(pool.clone())
         .finish();
 
