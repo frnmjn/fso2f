@@ -19,9 +19,9 @@
       "solution": ""
     },
     {
-      "name": "",
+      "name": "04",
       "instructions": "Add a nested Vec<OrderLine> in Order",
-      "test": "list",
+      "test": "_04_list",
       "solution": ""
     },
     {

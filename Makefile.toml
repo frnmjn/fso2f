@@ -22,16 +22,6 @@ description = "Run the monolith server"
 command = "cargo"
 args = ["run", "--bin", "00-monolith"]
 
-[tasks.01-simple-object]
-description = "Run the simple object server"
-command = "cargo"
-args = ["run", "--bin", "01-simple-object"]
-
-[tasks.02-complex-object]
-description = "Run the complex object server"
-command = "cargo"
-args = ["run", "--bin", "02-complex-object"]
-
 [tasks.task]
 description = "Run fso2f task"
 command = "cargo"

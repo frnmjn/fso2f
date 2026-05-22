@@ -1,4 +1,4 @@
-use async_graphql::{ComplexObject, ID, Object, Result, SimpleObject};
+use async_graphql::{ComplexObject, ID, Object, SimpleObject};
 use uuid::Uuid;
 
 pub struct QueryRoot;
@@ -24,8 +24,7 @@ struct Product {
 
 #[ComplexObject]
 impl Product {
-    async fn sales_count(&self /*, ctx: &Context<'_> */) -> Result<i32> {
-        // let _ = ctx.data::<Pool<Postgres>>()?;
-        Ok(42)
+    async fn sales_count(&self) -> i32 {
+        42
     }
 }
