@@ -51,6 +51,12 @@
     {
       "name": "",
       "instructions": "Implement a mutation to register a new Order, defining the necessary InputObjects",
+      "test": "mutation",
+      "solution": ""
+    },
+    {
+      "name": "",
+      "instructions": "Implement a mutation to register a new Product, defining the necessary OneOfObject as input",
       "test": "one_of",
       "solution": ""
     },

@@ -10,15 +10,15 @@ The input/output is a string in RFC3339 format.
 """
 scalar DateTime
 
-interface Product {
+interface ProductKind {
+  id: ID!
   kind: String!
   code: String!
   description: String!
-  id: ID!
 }
 
 type Query {
-  productById(id: ID!): Product
+  productById(id: ID!): ProductKind
   order(id: OrderId!): Order!
 }
 
@@ -61,7 +61,7 @@ scalar OrderId
 type OrderLine {
   lineNumber: Int!
   quantity: Int!
-  product: Product!
+  product: ProductKind!
 }
 
 enum OrderStatus {
@@ -70,7 +70,7 @@ enum OrderStatus {
   Cancelled
 }
 
-type DangerousProduct implements Product {
+type DangerousProduct implements ProductKind {
   id: ID!
   kind: String!
   code: String!
@@ -78,7 +78,7 @@ type DangerousProduct implements Product {
   maxTemperature: Float!
 }
 
-type ExpiringProduct implements Product {
+type ExpiringProduct implements ProductKind {
   id: ID!
   kind: String!
   code: String!
@@ -86,7 +86,7 @@ type ExpiringProduct implements Product {
   expirationDate: DateTime!
 }
 
-type StandardProduct implements Product {
+type Product implements ProductKind {
   id: ID!
   kind: String!
   code: String!

@@ -89,3 +89,109 @@ pub async fn get_expiring_product_by_id(
     .fetch_optional(pool)
     .await
 }
+
+pub async fn insert_product(
+    pool: &Pool<Postgres>,
+    product: DbProductKind,
+) -> sqlx::Result<DbProductKind> {
+    Ok(match product {
+        DbProductKind::Product(p) => {
+            DbProductKind::Product(insert_standard_product(pool, p).await?)
+        }
+        DbProductKind::Dangerous(p) => {
+            DbProductKind::Dangerous(insert_dangerous_product(pool, p).await?)
+        }
+        DbProductKind::Expiring(p) => {
+            DbProductKind::Expiring(insert_expiring_product(pool, p).await?)
+        }
+    })
+}
+
+pub async fn insert_standard_product(
+    pool: &Pool<Postgres>,
+    product: DbProduct,
+) -> sqlx::Result<DbProduct> {
+    sqlx::query_as::<_, DbProduct>(
+        "INSERT INTO products (id, code, description, kind) \
+         VALUES ($1, $2, $3, $4) \
+         RETURNING id, code, description",
+    )
+    .bind(product.id)
+    .bind(&product.code)
+    .bind(&product.description)
+    .bind("standard")
+    .fetch_one(pool)
+    .await
+}
+
+pub async fn insert_dangerous_product(
+    pool: &Pool<Postgres>,
+    product: DbDangerousProduct,
+) -> sqlx::Result<DbDangerousProduct> {
+    let mut tx = pool.begin().await?;
+
+    sqlx::query(
+        "INSERT INTO products (id, code, description, kind) \
+         VALUES ($1, $2, $3, $4)",
+    )
+    .bind(product.id)
+    .bind(&product.code)
+    .bind(&product.description)
+    .bind("dangerous")
+    .execute(&mut *tx)
+    .await?;
+
+    sqlx::query("INSERT INTO dangerous_products (id, max_temperature) VALUES ($1, $2)")
+        .bind(product.id)
+        .bind(product.max_temperature)
+        .execute(&mut *tx)
+        .await?;
+
+    let row = sqlx::query_as::<_, DbDangerousProduct>(
+        "SELECT p.id, p.code, p.description, dp.max_temperature \
+         FROM products p JOIN dangerous_products dp ON p.id = dp.id \
+         WHERE p.id = $1",
+    )
+    .bind(product.id)
+    .fetch_one(&mut *tx)
+    .await?;
+
+    tx.commit().await?;
+    Ok(row)
+}
+
+pub async fn insert_expiring_product(
+    pool: &Pool<Postgres>,
+    product: DbExpiringProduct,
+) -> sqlx::Result<DbExpiringProduct> {
+    let mut tx = pool.begin().await?;
+
+    sqlx::query(
+        "INSERT INTO products (id, code, description, kind) \
+         VALUES ($1, $2, $3, $4)",
+    )
+    .bind(product.id)
+    .bind(&product.code)
+    .bind(&product.description)
+    .bind("expiring")
+    .execute(&mut *tx)
+    .await?;
+
+    sqlx::query("INSERT INTO expiring_products (id, expiration_date) VALUES ($1, $2)")
+        .bind(product.id)
+        .bind(product.expiration_date)
+        .execute(&mut *tx)
+        .await?;
+
+    let row = sqlx::query_as::<_, DbExpiringProduct>(
+        "SELECT p.id, p.code, p.description, ep.expiration_date \
+         FROM products p JOIN expiring_products ep ON p.id = ep.id \
+         WHERE p.id = $1",
+    )
+    .bind(product.id)
+    .fetch_one(&mut *tx)
+    .await?;
+
+    tx.commit().await?;
+    Ok(row)
+}
