@@ -20,32 +20,14 @@
     },
     {
       "name": "04",
-      "instructions": "Add a nested Vec<OrderLine> in Order",
-      "test": "_04_list",
+      "instructions": "Let's make a real graph!",
+      "test": "_04_real_graph",
       "solution": ""
     },
     {
       "name": "",
-      "instructions": "Include an optional discount field in each OrderLine",
-      "test": "optional",
-      "solution": ""
-    },
-    {
-      "name": "",
-      "instructions": "Add a status enumeration for the Order",
-      "test": "enum",
-      "solution": ""
-    },
-    {
-      "name": "",
-      "instructions": "Order to include a Customer field",
-      "test": "struct",
-      "solution": ""
-    },
-    {
-      "name": "",
-      "instructions": "Make Product a union interface, exposing some shared fields and some fragments",
-      "test": "union_interface",
+      "instructions": "improve domain modeling",
+      "test": "optional and enum ",
       "solution": ""
     },
     {
@@ -62,7 +44,7 @@
     },
     {
       "name": "",
-      "instructions": "Split the monolith in two services, exposing a federated schema",
+      "instructions": "Split the monolith in two services, exposing a federated schema with new fields",
       "test": "federated_schema",
       "solution": ""
     },

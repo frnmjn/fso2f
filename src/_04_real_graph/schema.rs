@@ -20,7 +20,7 @@ impl ProductQuery {
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
-struct Product {
+pub struct Product {
     id: ID,
     code: String,
     description: String,
@@ -47,7 +47,38 @@ impl OrderQuery {
 }
 
 #[derive(SimpleObject)]
+#[graphql(complex)]
 struct Order {
     id: ID,
     total_amount: f64,
+}
+
+#[derive(SimpleObject)]
+pub struct OrderLine {
+    pub product: Product,
+    pub quantity: i32,
+}
+
+#[ComplexObject]
+impl Order {
+    async fn lines(&self) -> Vec<OrderLine> {
+        vec![
+            OrderLine {
+                product: Product {
+                    id: ID::from(Uuid::new_v4().to_string()),
+                    code: "P001".to_string(),
+                    description: "Sample product 1".to_string(),
+                },
+                quantity: 2,
+            },
+            OrderLine {
+                product: Product {
+                    id: ID::from(Uuid::new_v4().to_string()),
+                    code: "P002".to_string(),
+                    description: "Sample product 2".to_string(),
+                },
+                quantity: 1,
+            },
+        ]
+    }
 }

@@ -30,7 +30,7 @@ pub struct DbExpiringProduct {
     pub expiration_date: chrono::DateTime<chrono::Utc>,
 }
 
-pub async fn get_product_by_id(
+pub async fn retrieve_product_by_id(
     pool: &Pool<Postgres>,
     id: Uuid,
 ) -> sqlx::Result<Option<DbProductKind>> {
@@ -45,17 +45,14 @@ pub async fn get_product_by_id(
         Some("expiring") => Ok(get_expiring_product_by_id(pool, id)
             .await?
             .map(DbProductKind::Expiring)),
-        Some(_) => Ok(get_standard_product_by_id(pool, id)
+        Some(_) => Ok(get_product_by_id(pool, id)
             .await?
             .map(DbProductKind::Product)),
         None => Ok(None),
     }
 }
 
-pub async fn get_standard_product_by_id(
-    pool: &Pool<Postgres>,
-    id: Uuid,
-) -> sqlx::Result<Option<DbProduct>> {
+pub async fn get_product_by_id(pool: &Pool<Postgres>, id: Uuid) -> sqlx::Result<Option<DbProduct>> {
     sqlx::query_as::<_, DbProduct>("SELECT * FROM products WHERE id = $1")
         .bind(id)
         .fetch_optional(pool)
