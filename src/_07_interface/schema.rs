@@ -1,4 +1,6 @@
-use async_graphql::{ComplexObject, Enum, ID, MergedObject, Object, Result, SimpleObject, Union};
+use async_graphql::{
+    ComplexObject, Enum, ID, Interface, MergedObject, Object, Result, SimpleObject,
+};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -67,7 +69,12 @@ pub struct ExpiringProduct {
     pub expiration_date: DateTime<Utc>,
 }
 
-#[derive(Union)]
+#[derive(Interface)]
+#[graphql(
+    field(name = "id", ty = "&ID"),
+    field(name = "code", ty = "String"),
+    field(name = "description", ty = "String")
+)]
 pub enum ProductKind {
     Product(Product),
     DangerousProduct(DangerousProduct),

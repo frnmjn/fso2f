@@ -29,7 +29,7 @@ const QUERY: &str = r#"
 "#;
 
 #[tokio::test]
-async fn queries_modeling() {
+async fn ex_5() {
     let schema = Schema::new(QueryRoot::default(), EmptyMutation, EmptySubscription);
 
     let request = Request::new(QUERY).variables(Variables::from_json(json!({

@@ -1,7 +1,12 @@
-use async_graphql::{ComplexObject, Enum, ID, MergedObject, Object, Result, SimpleObject, Union};
+use async_graphql::{
+    ComplexObject, Context, Enum, ID, InputObject, Interface, MergedObject, Object, Result,
+    SimpleObject,
+};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
+use crate::db::products::{DbProduct, insert_standard_product};
 
 #[derive(MergedObject, Default)]
 pub struct QueryRoot(ProductQuery, OrderQuery);
@@ -67,7 +72,12 @@ pub struct ExpiringProduct {
     pub expiration_date: DateTime<Utc>,
 }
 
-#[derive(Union)]
+#[derive(Interface)]
+#[graphql(
+    field(name = "id", ty = "&ID"),
+    field(name = "code", ty = "String"),
+    field(name = "description", ty = "String")
+)]
 pub enum ProductKind {
     Product(Product),
     DangerousProduct(DangerousProduct),
@@ -178,4 +188,49 @@ pub enum Currency {
     EUR,
     USD,
     GBP,
+}
+
+#[derive(MergedObject, Default)]
+pub struct MutationRoot(ProductMutation);
+
+#[derive(Default)]
+pub struct ProductMutation;
+
+#[Object]
+impl ProductMutation {
+    async fn create_product(
+        &self,
+        ctx: &Context<'_>,
+        product: CreateProduct,
+    ) -> async_graphql::Result<Product> {
+        let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
+
+        let id = Uuid::new_v4();
+        let persisted = insert_standard_product(
+            pool,
+            DbProduct {
+                id,
+                code: product.code,
+                description: product.description,
+            },
+        )
+        .await?;
+        Ok(persisted.into())
+    }
+}
+
+#[derive(InputObject)]
+pub struct CreateProduct {
+    pub code: String,
+    pub description: String,
+}
+
+impl From<DbProduct> for Product {
+    fn from(db: DbProduct) -> Self {
+        Self {
+            id: ID::from(db.id.to_string()),
+            code: db.code,
+            description: db.description,
+        }
+    }
 }

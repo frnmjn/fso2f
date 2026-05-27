@@ -4,5 +4,7 @@ pub mod _03_merged_object;
 pub mod _04_real_graph;
 pub mod _05_modeling;
 pub mod _06_union;
+pub mod _07_interface;
+pub mod _08_mutation;
 pub mod db;
 pub mod schema;

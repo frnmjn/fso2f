@@ -14,7 +14,7 @@ const QUERY: &str = r#"
 "#;
 
 #[tokio::test]
-async fn queries_complex_object_product() {
+async fn ex_2() {
     let schema = Schema::new(QueryRoot, EmptyMutation, EmptySubscription);
 
     let request = Request::new(QUERY).variables(Variables::from_json(json!({

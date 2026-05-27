@@ -1,25 +1,17 @@
 use async_graphql::{EmptyMutation, EmptySubscription, Request, Schema, Variables};
-use fso2f::_06_union::schema::QueryRoot;
+use fso2f::_07_interface::schema::QueryRoot;
 use serde_json::{Value, json};
 
 const QUERY: &str = r#"
     query ($code: String!) {
         product(code: $code) {
-            ... on Product {
-                id
-                code
-                description
-            }
+            id
+            code
+            description
             ... on DangerousProduct {
-                id
-                code
-                description
                 maxTemperature
             }
             ... on ExpiringProduct {
-                id
-                code
-                description
                 expirationDate
             }
         }
@@ -27,7 +19,7 @@ const QUERY: &str = r#"
 "#;
 
 #[tokio::test]
-async fn ex_6() {
+async fn ex_7() {
     let schema = Schema::new(QueryRoot::default(), EmptyMutation, EmptySubscription);
 
     let request = Request::new(QUERY).variables(Variables::from_json(json!({

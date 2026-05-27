@@ -18,7 +18,7 @@ const QUERY: &str = r#"
 "#;
 
 #[tokio::test]
-async fn queries_merged_object() {
+async fn ex_3() {
     let schema = Schema::new(QueryRoot::default(), EmptyMutation, EmptySubscription);
 
     let request = Request::new(QUERY).variables(Variables::from_json(json!({

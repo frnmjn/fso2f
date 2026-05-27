@@ -21,7 +21,7 @@ const QUERY: &str = r#"
 "#;
 
 #[tokio::test]
-async fn queries_real_graph() {
+async fn ex_4() {
     let schema = Schema::new(QueryRoot::default(), EmptyMutation, EmptySubscription);
 
     let request = Request::new(QUERY).variables(Variables::from_json(json!({
