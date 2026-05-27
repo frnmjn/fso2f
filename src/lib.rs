@@ -3,5 +3,6 @@ pub mod _02_complex_object;
 pub mod _03_merged_object;
 pub mod _04_real_graph;
 pub mod _05_modeling;
+pub mod _06_union;
 pub mod db;
 pub mod schema;

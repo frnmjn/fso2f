@@ -31,27 +31,39 @@
       "solution": ""
     },
     {
-      "name": "",
+      "name": "06",
+      "instructions": "union",
+      "test": "_06_union",
+      "solution": ""
+    },
+    {
+      "name": "07",
+      "instructions": "interface",
+      "test": "_07_interface",
+      "solution": ""
+    },
+    {
+      "name": "08",
       "instructions": "Implement a mutation to register a new Order, defining the necessary InputObjects",
-      "test": "mutation",
+      "test": "_08_mutation",
       "solution": ""
     },
     {
       "name": "",
       "instructions": "Implement a mutation to register a new Product, defining the necessary OneOfObject as input",
-      "test": "one_of",
+      "test": "_09_one_of",
       "solution": ""
     },
     {
-      "name": "",
+      "name": "10",
       "instructions": "Split the monolith in two services, exposing a federated schema with new fields",
-      "test": "federated_schema",
+      "test": "_10_federated_schema",
       "solution": ""
     },
     {
-      "name": "",
+      "name": "11",
       "instructions": "Introduce extra fields in the Customer, coming from a feature flagged subschema",
-      "test": "federated_subgraph",
+      "test": "_11_federated_subgraph",
       "solution": ""
     }
   ]
