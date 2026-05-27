@@ -1,5 +1,5 @@
 use async_graphql::{EmptySubscription, Request, Schema, Variables};
-use fso2f::_08_mutation::schema::{MutationRoot, QueryRoot};
+use fso2f::_08_mutation::schema::{Mutation, Query};
 use serde_json::{Value, json};
 
 const MUTATION: &str = r#"
@@ -17,13 +17,9 @@ async fn ex_8() {
     let pool = sqlx::PgPool::connect("postgres://fso2f:fso2f@localhost:5432/fso2f")
         .await
         .unwrap();
-    let schema = Schema::build(
-        QueryRoot::default(),
-        MutationRoot::default(),
-        EmptySubscription,
-    )
-    .data(pool.clone())
-    .finish();
+    let schema = Schema::build(Query::default(), Mutation::default(), EmptySubscription)
+        .data(pool.clone())
+        .finish();
 
     let request = Request::new(MUTATION).variables(Variables::from_json(json!({
         "product": {

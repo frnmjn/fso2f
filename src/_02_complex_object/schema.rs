@@ -1,10 +1,10 @@
 use async_graphql::{ComplexObject, ID, Object, SimpleObject};
 use uuid::Uuid;
 
-pub struct QueryRoot;
+pub struct Query;
 
 #[Object]
-impl QueryRoot {
+impl Query {
     async fn product(&self, code: String) -> Product {
         Product {
             id: ID::from(Uuid::new_v4().to_string()),

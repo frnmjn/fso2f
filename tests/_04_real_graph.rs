@@ -1,5 +1,5 @@
 use async_graphql::{EmptyMutation, EmptySubscription, Request, Schema, Variables};
-use fso2f::_04_real_graph::schema::QueryRoot;
+use fso2f::_04_real_graph::schema::Query;
 use serde_json::{Value, json};
 
 const QUERY: &str = r#"
@@ -22,7 +22,7 @@ const QUERY: &str = r#"
 
 #[tokio::test]
 async fn ex_4() {
-    let schema = Schema::new(QueryRoot::default(), EmptyMutation, EmptySubscription);
+    let schema = Schema::new(Query::default(), EmptyMutation, EmptySubscription);
 
     let request = Request::new(QUERY).variables(Variables::from_json(json!({
         "orderId": "aaaa1111-aa11-4aa1-8aa1-aaaaaaaaaaaa",

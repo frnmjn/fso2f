@@ -1,5 +1,5 @@
 use async_graphql::{EmptyMutation, EmptySubscription, Request, Schema, Variables};
-use fso2f::_02_complex_object::schema::QueryRoot;
+use fso2f::_02_complex_object::schema::Query;
 use serde_json::{Value, json};
 
 const QUERY: &str = r#"
@@ -15,7 +15,7 @@ const QUERY: &str = r#"
 
 #[tokio::test]
 async fn ex_2() {
-    let schema = Schema::new(QueryRoot, EmptyMutation, EmptySubscription);
+    let schema = Schema::new(Query, EmptyMutation, EmptySubscription);
 
     let request = Request::new(QUERY).variables(Variables::from_json(json!({
         "code": "WIDGET-001",

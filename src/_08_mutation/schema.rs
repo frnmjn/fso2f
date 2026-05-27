@@ -9,7 +9,7 @@ use uuid::Uuid;
 use crate::db::products::{DbProduct, insert_standard_product};
 
 #[derive(MergedObject, Default)]
-pub struct QueryRoot(ProductQuery, OrderQuery);
+pub struct Query(ProductQuery, OrderQuery);
 
 #[derive(Default)]
 pub struct ProductQuery;
@@ -191,7 +191,7 @@ pub enum Currency {
 }
 
 #[derive(MergedObject, Default)]
-pub struct MutationRoot(ProductMutation);
+pub struct Mutation(ProductMutation);
 
 #[derive(Default)]
 pub struct ProductMutation;

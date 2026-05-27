@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(MergedObject, Default)]
-pub struct QueryRoot(ProductQuery, OrderQuery);
+pub struct Query(ProductQuery, OrderQuery);
 
 #[derive(Default)]
 pub struct ProductQuery;
