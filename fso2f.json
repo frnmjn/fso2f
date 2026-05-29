@@ -49,27 +49,27 @@
       "solution": ""
     },
     {
-      "name": "",
+      "name": "09",
       "instructions": "Implement a mutation to register a new Product, defining the necessary OneOfObject as input",
       "test": "_09_one_of",
       "solution": ""
     },
     {
-      "name": "",
-      "instructions": "subscription?",
-      "test": "",
-      "solution": ""
-    },
-    {
       "name": "10",
-      "instructions": "Split the monolith in two services, exposing a federated schema with new fields",
-      "test": "_10_federated_schema",
+      "instructions": "subscription?",
+      "test": "_10_subscription",
       "solution": ""
     },
     {
       "name": "11",
+      "instructions": "Split the monolith in two services, exposing a federated schema with new fields",
+      "test": "_11_federated_schema",
+      "solution": ""
+    },
+    {
+      "name": "12",
       "instructions": "Introduce extra fields in the Customer, coming from a feature flagged subschema",
-      "test": "_11_federated_subgraph",
+      "test": "_12_federated_subgraph",
       "solution": ""
     }
   ]

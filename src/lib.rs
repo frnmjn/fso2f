@@ -6,5 +6,6 @@ pub mod _05_modeling;
 pub mod _06_union;
 pub mod _07_interface;
 pub mod _08_mutation;
+pub mod _09_one_of;
 pub mod db;
 pub mod schema;

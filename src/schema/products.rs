@@ -216,7 +216,7 @@ impl ProductMutation {
 
 #[allow(clippy::duplicated_attributes)]
 #[derive(OneofObject)]
-pub enum CreateProductKind {
+pub enum  CreateProductKind {
     Product(CreateProduct),
     DangerousProduct(CreateDangerousProduct),
     ExpiringProduct(CreateExpiringProduct),
