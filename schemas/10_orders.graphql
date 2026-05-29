@@ -1,16 +1,38 @@
-type Customer @key(fields: "id") {
+type Customer {
 	id: ID!
-	name: String! @override(from: "orders")
-	vat: String! @override(from: "orders")
-	"""
-	New fields owned by customers subgraph
-	"""
-	email: String!
-	phone: String!
+	name: String!
+	vat: String!
+}
+
+scalar Money
+
+type Order {
+	id: ID!
+	customer: Customer!
+	totalAmount: Money!
+	status: OrderStatus!
+	lines: [OrderLine!]!
+}
+
+type OrderLine {
+	product: ProductKind!
+	quantity: Int!
+	price: Float!
+	discount: Float
+}
+
+enum OrderStatus {
+	DRAFT
+	CONFIRMED
+	Cancelled
+}
+
+type ProductKind @key(fields: "id") @interfaceObject {
+	id: ID!
 }
 
 type Query {
-	customer(id: ID!): Customer!
+	order(id: ID!): Order
 }
 
 """

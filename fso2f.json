@@ -56,20 +56,32 @@
     },
     {
       "name": "10",
-      "instructions": "subscription?",
-      "test": "_10_subscription",
+      "instructions": "Split the monolith in two services, exposing a federated schema with new fields",
+      "test": "_10_federated_schema",
       "solution": ""
     },
     {
       "name": "11",
-      "instructions": "Split the monolith in two services, exposing a federated schema with new fields",
-      "test": "_11_federated_schema",
+      "instructions": "Introduce extra fields in the Customer, coming from a feature flagged subschema",
+      "test": "_11_federated_subgraph",
       "solution": ""
     },
     {
       "name": "12",
-      "instructions": "Introduce extra fields in the Customer, coming from a feature flagged subschema",
-      "test": "_12_federated_subgraph",
+      "instructions": "subscription",
+      "test": "_12_subscription",
+      "solution": ""
+    },
+    {
+      "name": "13",
+      "instructions": "dataloader",
+      "test": "_13_dataloader",
+      "solution": ""
+    },
+    {
+      "name": "14",
+      "instructions": "pagination",
+      "test": "_14_pagination",
       "solution": ""
     }
   ]

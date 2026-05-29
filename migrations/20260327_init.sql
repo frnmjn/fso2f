@@ -31,6 +31,8 @@ CREATE TABLE order_lines (
     product_id UUID NOT NULL REFERENCES products(id),
     line_number INT NOT NULL,
     quantity INT NOT NULL,
+    price DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    discount DOUBLE PRECISION,
     UNIQUE(order_id, line_number)
 );
 

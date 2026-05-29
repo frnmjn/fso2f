@@ -1,52 +1,114 @@
 use async_graphql::{EmptyMutation, EmptySubscription, SDLExportOptions, Schema};
-use fso2f::schema::{customers, fake_customers, orders, products};
+use fso2f::{
+    _01_simple_object, _02_complex_object, _03_merged_object, _04_real_graph, _05_modeling,
+    _06_union, _07_interface, _08_mutation, _09_one_of,
+    _10_federation::{orders, products},
+};
 use std::fs;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Generate products subgraph schema
-    let products_schema = Schema::new(
-        products::Query::default(),
-        products::Mutation::default(),
-        EmptySubscription,
-    );
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let schemas: Vec<(&str, String)> = vec![
+        (
+            "schemas/01_simple_object.graphql",
+            Schema::new(
+                _01_simple_object::schema::Query,
+                EmptyMutation,
+                EmptySubscription,
+            )
+            .sdl(),
+        ),
+        (
+            "schemas/02_complex_object.graphql",
+            Schema::new(
+                _02_complex_object::schema::Query,
+                EmptyMutation,
+                EmptySubscription,
+            )
+            .sdl(),
+        ),
+        (
+            "schemas/03_merged_object.graphql",
+            Schema::new(
+                _03_merged_object::schema::Query::default(),
+                EmptyMutation,
+                EmptySubscription,
+            )
+            .sdl(),
+        ),
+        (
+            "schemas/04_real_graph.graphql",
+            Schema::new(
+                _04_real_graph::schema::Query::default(),
+                EmptyMutation,
+                EmptySubscription,
+            )
+            .sdl(),
+        ),
+        (
+            "schemas/05_modeling.graphql",
+            Schema::new(
+                _05_modeling::schema::Query::default(),
+                EmptyMutation,
+                EmptySubscription,
+            )
+            .sdl(),
+        ),
+        (
+            "schemas/06_union.graphql",
+            Schema::new(
+                _06_union::schema::Query::default(),
+                EmptyMutation,
+                EmptySubscription,
+            )
+            .sdl(),
+        ),
+        (
+            "schemas/07_interface.graphql",
+            Schema::new(
+                _07_interface::schema::Query::default(),
+                EmptyMutation,
+                EmptySubscription,
+            )
+            .sdl(),
+        ),
+        (
+            "schemas/08_mutation.graphql",
+            Schema::new(
+                _08_mutation::schema::Query::default(),
+                _08_mutation::schema::Mutation::default(),
+                EmptySubscription,
+            )
+            .sdl(),
+        ),
+        (
+            "schemas/09_one_of.graphql",
+            Schema::new(
+                _09_one_of::schema::Query::default(),
+                _09_one_of::schema::Mutation::default(),
+                EmptySubscription,
+            )
+            .sdl(),
+        ),
+        (
+            "schemas/10_products.graphql",
+            Schema::new(
+                products::Query::default(),
+                products::Mutation::default(),
+                EmptySubscription,
+            )
+            .sdl_with_options(SDLExportOptions::new().federation()),
+        ),
+        (
+            "schemas/10_orders.graphql",
+            Schema::new(orders::Query::default(), EmptyMutation, EmptySubscription)
+                .sdl_with_options(SDLExportOptions::new().federation()),
+        ),
+    ];
 
-    let products_sdl = products_schema.sdl_with_options(SDLExportOptions::new().federation());
-    fs::write("schemas/products.graphql", products_sdl)?;
-    println!("✅ Products schema exported to schemas/products.graphql");
-
-    // Generate orders subgraph schema
-    let orders_schema = Schema::new(
-        orders::Query::default(),
-        orders::Mutation::default(),
-        EmptySubscription,
-    );
-
-    let orders_sdl = orders_schema.sdl_with_options(SDLExportOptions::new().federation());
-    fs::write("schemas/orders.graphql", orders_sdl)?;
-    println!("✅ Orders schema exported to schemas/orders.graphql");
-
-    // Generate fake customers subgraph schema
-    let fake_customers_schema = Schema::new(
-        fake_customers::FakeCustomerQuery,
-        EmptyMutation,
-        EmptySubscription,
-    );
-    let fake_customers_sdl =
-        fake_customers_schema.sdl_with_options(SDLExportOptions::new().federation());
-    fs::write("schemas/fake_customers.graphql", fake_customers_sdl)?;
-    println!("✅ Fake Customers schema exported to schemas/fake_customers.graphql");
-
-    // Generate customers subgraph schema
-    let customers_schema = Schema::new(
-        customers::Query::default(),
-        EmptyMutation,
-        EmptySubscription,
-    );
-
-    let customers_sdl = customers_schema.sdl_with_options(SDLExportOptions::new().federation());
-    fs::write("schemas/customers.graphql", customers_sdl)?;
-    println!("✅ Customers schema exported to schemas/customers.graphql");
+    for (path, sdl) in &schemas {
+        fs::write(path, sdl)?;
+        println!("✅ Schema exported to {path}");
+    }
 
     Ok(())
 }

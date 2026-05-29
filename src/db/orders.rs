@@ -19,6 +19,8 @@ pub struct DbOrderLine {
     pub product_id: Uuid,
     pub line_number: i32,
     pub quantity: i32,
+    pub price: f64,
+    pub discount: Option<f64>,
 }
 
 pub async fn get_order_by_id(pool: &Pool<Postgres>, id: Uuid) -> sqlx::Result<Option<DbOrder>> {

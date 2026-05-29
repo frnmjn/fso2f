@@ -7,5 +7,6 @@ pub mod _06_union;
 pub mod _07_interface;
 pub mod _08_mutation;
 pub mod _09_one_of;
+pub mod _10_federation;
 pub mod db;
 pub mod schema;

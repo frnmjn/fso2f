@@ -16,10 +16,24 @@ services:
     volumes:
       - ./migrations:/docker-entrypoint-initdb.d
 
+  wundergraph-router-local:
+    image: ghcr.io/wundergraph/cosmo/router
+    environment:
+      LOG_LEVEL: info
+      CORS_ALLOW_CREDENTIALS: true
+      LISTEN_ADDR: '0.0.0.0:5000'
+      EXECUTION_CONFIG_FILE_PATH: /router.json
+    volumes:
+      - ./schemas/federation/router.json:/router.json
+    ports:
+      - '5000:5000'
+    profiles:
+      - local
+
   products-subgraph:
-    image: rust:1.84
+    build: .
     working_dir: /app
-    command: sh -c "rustup default nightly && cargo run --bin products-subgraph"
+    command: cargo run --bin 10_products
     ports:
       - "3001:3001"
     environment:
@@ -32,11 +46,13 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    profiles:
+      - local
 
   orders-subgraph:
-    image: rust:1.84
+    build: .
     working_dir: /app
-    command: sh -c "rustup default nightly && cargo run --bin orders-subgraph"
+    command: cargo run --bin 10_orders
     ports:
       - "3002:3002"
     environment:
@@ -49,11 +65,13 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    profiles:
+      - local
 
   customers-subgraph:
-    image: rust:1.84
+    build: .
     working_dir: /app
-    command: sh -c "rustup default nightly && cargo run --bin customers-subgraph"
+    command: cargo run --bin customers-subgraph
     ports:
       - "3003:3003"
     environment:
@@ -69,20 +87,6 @@ services:
     profiles:
       - control-plane
 
-  wundergraph-router-local:
-    image: ghcr.io/wundergraph/cosmo/router
-    environment:
-      LOG_LEVEL: info
-      CORS_ALLOW_CREDENTIALS: true
-      LISTEN_ADDR: '0.0.0.0:5000'
-    volumes:
-      - ./schemas/federation/router.json:/router.json
-      - ./schemas/federation/config.yaml:/config.yaml
-    ports:
-      - '5000:5000'
-    profiles:
-      - local
-      
   wundergraph-router-control-plane:
     image: ghcr.io/wundergraph/cosmo/router
     environment:

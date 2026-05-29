@@ -24,11 +24,16 @@ input CreateProductKind @oneOf {
 	expiringProduct: CreateExpiringProduct
 }
 
-type DangerousProduct implements ProductKind @key(fields: "id") {
-	id: ID! @shareable
-	kind: String! @shareable
-	code: String! @shareable
-	description: String! @shareable
+type Customer {
+	id: ID!
+	name: String!
+	vat: String!
+}
+
+type DangerousProduct implements ProductKind {
+	id: ID!
+	code: String!
+	description: String!
 	maxTemperature: Float!
 }
 
@@ -39,34 +44,56 @@ The input/output is a string in RFC3339 format.
 """
 scalar DateTime
 
-type ExpiringProduct implements ProductKind @key(fields: "id") {
-	id: ID! @shareable
-	kind: String! @shareable
-	code: String! @shareable
-	description: String! @shareable
+type ExpiringProduct implements ProductKind {
+	id: ID!
+	code: String!
+	description: String!
 	expirationDate: DateTime!
 }
+
+scalar Money
 
 type Mutation {
 	createProduct(product: CreateProductKind!): ProductKind!
 }
 
-type Product implements ProductKind @key(fields: "id") {
-	id: ID! @shareable
-	kind: String! @shareable
-	code: String! @shareable
-	description: String! @shareable
+type Order {
+	id: ID!
+	customer: Customer!
+	totalAmount: Money!
+	status: OrderStatus!
+	lines: [OrderLine!]!
 }
 
-interface ProductKind @key(fields: "id") {
+type OrderLine {
+	product: Product!
+	quantity: Int!
+	price: Money!
+	discount: Money
+}
+
+enum OrderStatus {
+	DRAFT
+	CONFIRMED
+	Cancelled
+}
+
+type Product implements ProductKind {
 	id: ID!
-	kind: String!
+	code: String!
+	description: String!
+	salesCount: Int!
+}
+
+interface ProductKind {
+	id: ID!
 	code: String!
 	description: String!
 }
 
 type Query {
-	productById(id: ID!): ProductKind
+	product(code: String!): ProductKind!
+	order(id: ID!): Order!
 }
 
 """
@@ -85,7 +112,7 @@ directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 Provides a scalar specification URL for specifying the behavior of custom scalar types.
 """
 directive @specifiedBy(url: String!) on SCALAR
-extend schema @link(
-	url: "https://specs.apollo.dev/federation/v2.5",
-	import: ["@key", "@tag", "@shareable", "@inaccessible", "@override", "@external", "@provides", "@requires", "@composeDirective", "@interfaceObject", "@requiresScopes"]
-)
+schema {
+	query: Query
+	mutation: Mutation
+}

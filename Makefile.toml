@@ -40,7 +40,7 @@ args = ["run", "--bin", "fso2f", "--", "solution"]
 # Local Federation
 
 [tasks.wgc-build-router]
-description = "Build WonderGraph router configuration"
+description = "Build WunderGraph router configuration"
 command = "wgc"
 args = [
     "router",

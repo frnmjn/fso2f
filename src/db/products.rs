@@ -12,7 +12,7 @@ pub struct DbProduct {
     pub id: Uuid,
     pub code: String,
     pub description: String,
-}
+} 
 
 #[derive(Debug, Clone, FromRow)]
 pub struct DbDangerousProduct {

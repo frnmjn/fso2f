@@ -1,11 +1,12 @@
 use async_graphql::{EmptySubscription, Schema, http::GraphiQLSource};
-use async_graphql_axum::GraphQL;
+use async_graphql_axum::{GraphQL, GraphQLSubscription};
 use axum::{
     Router,
     response::{Html, IntoResponse},
     routing::get,
 };
-use fso2f::schema::orders::{Mutation, Query};
+
+use fso2f::_10_federation::products::{Mutation, Query};
 use sqlx::postgres::PgPoolOptions;
 
 #[tokio::main]
@@ -32,12 +33,13 @@ async fn main() -> Result<(), sqlx::Error> {
             "/graphql",
             get(graphiql).post_service(GraphQL::new(schema.clone())),
         )
+        .route_service("/ws", GraphQLSubscription::new(schema.clone()))
         .with_state(pool.clone());
 
-    tracing::info!("🚀 Orders subgraph running at http://0.0.0.0:3002/graphql");
+    tracing::info!("🚀 Products subgraph running at http://0.0.0.0:3001/graphql");
 
-    // run our app with hyper, listening globally on port 3002
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3002").await.unwrap();
+    // run our app with hyper, listening globally on port 3001
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3001").await.unwrap();
     axum::serve(listener, app).await.unwrap();
     Ok(())
 }
