@@ -1,5 +1,4 @@
 use async_graphql::{Context, ID, MergedObject, Object, SimpleObject};
-use uuid::Uuid;
 
 use crate::db::customers::{DbCustomer, get_customer_by_id};
 
@@ -13,9 +12,7 @@ pub struct CustomerQuery;
 impl CustomerQuery {
     async fn customer(&self, ctx: &Context<'_>, id: ID) -> async_graphql::Result<Customer> {
         let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
-        let uuid = Uuid::parse_str(id.as_str())
-            .map_err(|_| async_graphql::Error::new("Invalid customer ID"))?;
-        let db_customer = get_customer_by_id(pool, uuid)
+        let db_customer = get_customer_by_id(pool, id.as_str())
             .await?
             .ok_or_else(|| async_graphql::Error::new("Customer not found"))?;
         Ok(db_customer.into())
@@ -28,9 +25,7 @@ impl CustomerQuery {
         #[graphql(key)] id: ID,
     ) -> async_graphql::Result<Customer> {
         let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
-        let uuid = Uuid::parse_str(id.as_str())
-            .map_err(|_| async_graphql::Error::new("Invalid customer ID"))?;
-        let db_customer = get_customer_by_id(pool, uuid)
+        let db_customer = get_customer_by_id(pool, id.as_str())
             .await?
             .ok_or_else(|| async_graphql::Error::new("Customer not found"))?;
         Ok(db_customer.into())

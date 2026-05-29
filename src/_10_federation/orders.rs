@@ -1,6 +1,5 @@
 use async_graphql::{ComplexObject, Context, Enum, ID, MergedObject, Object, SimpleObject};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::db::orders::{DbOrder, DbOrderLine, get_order_by_id, get_order_lines_by_order_id};
 
@@ -14,9 +13,7 @@ struct OrderQuery;
 impl OrderQuery {
     async fn order(&self, ctx: &Context<'_>, id: ID) -> async_graphql::Result<Option<Order>> {
         let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
-        let uuid = Uuid::parse_str(id.as_str())
-            .map_err(|_| async_graphql::Error::new("Invalid order ID"))?;
-        let db_order = get_order_by_id(pool, uuid).await?;
+        let db_order = get_order_by_id(pool, id.as_str()).await?;
         Ok(db_order.map(Order::from))
     }
 
@@ -38,9 +35,9 @@ struct Order {
 impl From<DbOrder> for Order {
     fn from(o: DbOrder) -> Self {
         Self {
-            id: ID::from(o.id.to_string()),
+            id: ID::from(o.id),
             customer: Customer {
-                id: ID::from(o.customer_id.to_string()),
+                id: ID::from(o.customer_id),
                 name: o.customer_name,
                 vat: o.customer_vat,
             },
@@ -76,9 +73,7 @@ pub enum OrderStatus {
 impl Order {
     async fn lines(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<OrderLine>> {
         let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
-        let uuid = Uuid::parse_str(self.id.as_str())
-            .map_err(|_| async_graphql::Error::new("Invalid order ID"))?;
-        let db_lines = get_order_lines_by_order_id(pool, uuid).await?;
+        let db_lines = get_order_lines_by_order_id(pool, self.id.as_str()).await?;
         Ok(db_lines.into_iter().map(OrderLine::from).collect())
     }
 }
@@ -95,7 +90,7 @@ impl From<DbOrderLine> for OrderLine {
     fn from(l: DbOrderLine) -> Self {
         Self {
             product: ProductKind {
-                id: ID::from(l.product_id.to_string()),
+                id: ID::from(l.product_id),
             },
             quantity: l.quantity,
             price: l.price,

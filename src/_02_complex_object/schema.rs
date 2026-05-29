@@ -1,5 +1,5 @@
 use async_graphql::{ComplexObject, ID, Object, SimpleObject};
-use uuid::Uuid;
+
 
 pub struct Query;
 
@@ -7,7 +7,7 @@ pub struct Query;
 impl Query {
     async fn product(&self, code: String) -> Product {
         Product {
-            id: ID::from(Uuid::new_v4().to_string()),
+            id: ID::from(uuid::Uuid::new_v4().to_string()),
             code,
             description: "A sample product".to_string(),
         }

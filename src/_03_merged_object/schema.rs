@@ -1,5 +1,5 @@
 use async_graphql::{ComplexObject, ID, MergedObject, Object, Result, SimpleObject};
-use uuid::Uuid;
+
 
 #[derive(MergedObject, Default)]
 pub struct Query(ProductQuery, OrderQuery);
@@ -11,7 +11,7 @@ pub struct ProductQuery;
 impl ProductQuery {
     async fn product(&self, code: String) -> Product {
         Product {
-            id: ID::from(Uuid::new_v4().to_string()),
+            id: ID::from(uuid::Uuid::new_v4().to_string()),
             code,
             description: "A sample product".to_string(),
         }

@@ -6,7 +6,6 @@ use async_graphql::{
 };
 use chrono::{DateTime, Utc};
 use tokio_stream::{Stream, StreamExt};
-use uuid::Uuid;
 
 use crate::db::products::{
     DbDangerousProduct, DbExpiringProduct, DbProduct, DbProductKind, get_dangerous_product_by_id,
@@ -27,9 +26,7 @@ impl ProductQuery {
         id: ID,
     ) -> async_graphql::Result<Option<ProductKind>> {
         let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
-        let uuid = Uuid::parse_str(id.as_str())
-            .map_err(|_| async_graphql::Error::new("Invalid product ID"))?;
-        if let Some(db_product) = retrieve_product_by_id(pool, uuid).await? {
+        if let Some(db_product) = retrieve_product_by_id(pool, id.as_str()).await? {
             Ok(Some(db_product.into()))
         } else {
             Ok(None)
@@ -43,9 +40,7 @@ impl ProductQuery {
         #[graphql(key)] id: ID,
     ) -> async_graphql::Result<ProductKind> {
         let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
-        let uuid = Uuid::parse_str(id.as_str())
-            .map_err(|_| async_graphql::Error::new("Invalid product ID"))?;
-        let db_product = retrieve_product_by_id(pool, uuid)
+        let db_product = retrieve_product_by_id(pool, id.as_str())
             .await?
             .ok_or_else(|| async_graphql::Error::new("Product not found"))?;
         Ok(db_product.into())
@@ -58,9 +53,7 @@ impl ProductQuery {
         #[graphql(key)] id: ID,
     ) -> async_graphql::Result<Product> {
         let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
-        let uuid = Uuid::parse_str(id.as_str())
-            .map_err(|_| async_graphql::Error::new("Invalid product ID"))?;
-        let db_product = get_product_by_id(pool, uuid)
+        let db_product = get_product_by_id(pool, id.as_str())
             .await?
             .ok_or_else(|| async_graphql::Error::new("Standard product not found"))?;
         Ok(db_product.into())
@@ -73,9 +66,7 @@ impl ProductQuery {
         #[graphql(key)] id: ID,
     ) -> async_graphql::Result<ExpiringProduct> {
         let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
-        let uuid = Uuid::parse_str(id.as_str())
-            .map_err(|_| async_graphql::Error::new("Invalid product ID"))?;
-        let db_product = get_expiring_product_by_id(pool, uuid)
+        let db_product = get_expiring_product_by_id(pool, id.as_str())
             .await?
             .ok_or_else(|| async_graphql::Error::new("Expiring product not found"))?;
         Ok(db_product.into())
@@ -88,9 +79,7 @@ impl ProductQuery {
         #[graphql(key)] id: ID,
     ) -> async_graphql::Result<DangerousProduct> {
         let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
-        let uuid = Uuid::parse_str(id.as_str())
-            .map_err(|_| async_graphql::Error::new("Invalid product ID"))?;
-        let db_product = get_dangerous_product_by_id(pool, uuid)
+        let db_product = get_dangerous_product_by_id(pool, id.as_str())
             .await?
             .ok_or_else(|| async_graphql::Error::new("Dangerous product not found"))?;
         Ok(db_product.into())
@@ -126,7 +115,7 @@ pub struct Product {
 impl From<DbProduct> for Product {
     fn from(db: DbProduct) -> Self {
         Self {
-            id: ID::from(db.id.to_string()),
+            id: ID::from(db.id),
             kind: "standard".to_string(),
             code: db.code,
             description: db.description,
@@ -150,7 +139,7 @@ pub struct DangerousProduct {
 impl From<DbDangerousProduct> for DangerousProduct {
     fn from(db: DbDangerousProduct) -> Self {
         Self {
-            id: ID::from(db.id.to_string()),
+            id: ID::from(db.id),
             kind: "dangerous".to_string(),
             code: db.code,
             description: db.description,
@@ -175,7 +164,7 @@ pub struct ExpiringProduct {
 impl From<DbExpiringProduct> for ExpiringProduct {
     fn from(db: DbExpiringProduct) -> Self {
         Self {
-            id: ID::from(db.id.to_string()),
+            id: ID::from(db.id),
             kind: "expiring".to_string(),
             code: db.code,
             description: db.description,
@@ -208,7 +197,7 @@ impl ProductMutation {
         product: CreateProductKind,
     ) -> async_graphql::Result<ProductKind> {
         let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
-        let id = Uuid::new_v4();
+        let id = uuid::Uuid::new_v4().to_string();
         let persisted = insert_product(pool, product.into_write_model(id)).await?;
         Ok(persisted.into())
     }
@@ -223,7 +212,7 @@ pub enum  CreateProductKind {
 }
 
 impl CreateProductKind {
-    pub fn into_write_model(self, id: Uuid) -> DbProductKind {
+    pub fn into_write_model(self, id: String) -> DbProductKind {
         match self {
             CreateProductKind::Product(p) => DbProductKind::Product(p.into_write_model(id)),
             CreateProductKind::DangerousProduct(p) => {
@@ -244,7 +233,7 @@ pub struct CreateProduct {
 }
 
 impl CreateProduct {
-    pub fn into_write_model(self, id: Uuid) -> DbProduct {
+    pub fn into_write_model(self, id: String) -> DbProduct {
         DbProduct {
             id,
             code: self.code,
@@ -262,7 +251,7 @@ pub struct CreateDangerousProduct {
 }
 
 impl CreateDangerousProduct {
-    pub fn into_write_model(self, id: Uuid) -> DbDangerousProduct {
+    pub fn into_write_model(self, id: String) -> DbDangerousProduct {
         DbDangerousProduct {
             id,
             code: self.code,
@@ -281,7 +270,7 @@ pub struct CreateExpiringProduct {
 }
 
 impl CreateExpiringProduct {
-    pub fn into_write_model(self, id: Uuid) -> DbExpiringProduct {
+    pub fn into_write_model(self, id: String) -> DbExpiringProduct {
         DbExpiringProduct {
             id,
             code: self.code,
@@ -309,17 +298,17 @@ impl Subscription {
             for i in 0..new_product_added {
                 if i % 2 == 0 {
                     products.push(ProductKind::ExpiringProduct(ExpiringProduct {
-                        id: ID::from(Uuid::new_v4().to_string()),
+                        id: ID::from(uuid::Uuid::new_v4().to_string()),
                         kind: "expiring".to_string(),
-                        code: format!("EXP-{}", Uuid::new_v4()),
+                        code: format!("EXP-{}", uuid::Uuid::new_v4()),
                         description: "A newly added expiring product".to_string(),
                         expiration_date: Utc::now() + chrono::Duration::days(30),
                     }));
                 } else {
                     products.push(ProductKind::DangerousProduct(DangerousProduct {
-                        id: ID::from(Uuid::new_v4().to_string()),
+                        id: ID::from(uuid::Uuid::new_v4().to_string()),
                         kind: "dangerous".to_string(),
-                        code: format!("DANG-{}", Uuid::new_v4()),
+                        code: format!("DANG-{}", uuid::Uuid::new_v4()),
                         description: "A newly added dangerous product".to_string(),
                         max_temperature: 100.0,
                     }));

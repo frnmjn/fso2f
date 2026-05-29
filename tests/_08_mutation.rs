@@ -2,7 +2,6 @@ use async_graphql::{EmptySubscription, Request, Schema, Variables};
 use fso2f::_08_mutation::schema::{Mutation, Query};
 use fso2f::db::products::get_product_by_id;
 use serde_json::{Value, json};
-use uuid::Uuid;
 
 const MUTATION: &str = r#"
     mutation ($product: CreateProduct!) {
@@ -44,7 +43,7 @@ async fn ex_8() {
     assert_eq!(product["description"], "Broccoli");
 
     // Verify the record exists in the database
-    let id: Uuid = product["id"].as_str().unwrap().parse().unwrap();
+    let id = product["id"].as_str().unwrap();
     let db_product = get_product_by_id(&pool, id).await.unwrap();
     assert!(db_product.is_some());
     let db_product = db_product.unwrap();

@@ -1,8 +1,7 @@
 use async_graphql::{
-    ComplexObject, Context, Enum, ID, InputObject, MergedObject, Object, SimpleObject, scalar,
+    ComplexObject, Context, Enum, ID, InputObject, MergedObject, Object, SimpleObject,
 };
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::db::orders::{
     DbOrder, DbOrderLine, get_order_by_customer_id, get_order_by_id, get_order_lines_by_order_id,
@@ -15,16 +14,11 @@ pub struct Query(OrderQuery);
 #[derive(Default)]
 pub struct OrderQuery;
 
-#[derive(Serialize, Deserialize)]
-pub struct OrderId(pub Uuid);
-
-scalar!(OrderId);
-
 #[Object]
 impl OrderQuery {
-    async fn order(&self, ctx: &Context<'_>, id: OrderId) -> async_graphql::Result<Order> {
+    async fn order(&self, ctx: &Context<'_>, id: ID) -> async_graphql::Result<Order> {
         let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
-        let db_order = get_order_by_id(pool, id.0)
+        let db_order = get_order_by_id(pool, id.as_str())
             .await?
             .ok_or_else(|| async_graphql::Error::new("Order not found"))?;
 
@@ -38,7 +32,7 @@ impl OrderQuery {
         #[graphql(key)] id: ID,
     ) -> async_graphql::Result<Customer> {
         let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
-        let db_order = get_order_by_customer_id(pool, Uuid::parse_str(id.as_str())?)
+        let db_order = get_order_by_customer_id(pool, id.as_str())
             .await?
             .ok_or_else(|| async_graphql::Error::new("Order not found"))?;
 
@@ -58,7 +52,7 @@ impl OrderQuery {
 #[derive(SimpleObject)]
 #[graphql(complex)]
 pub struct Order {
-    pub id: OrderId,
+    pub id: ID,
     pub customer: Customer,
     pub total_amount: f64,
     pub status: OrderStatus,
@@ -85,9 +79,9 @@ pub enum OrderStatus {
 impl From<DbOrder> for Order {
     fn from(db_order: DbOrder) -> Self {
         Self {
-            id: OrderId(db_order.id),
+            id: ID::from(db_order.id),
             customer: Customer {
-                id: ID::from(db_order.customer_id.to_string()),
+                id: ID::from(db_order.customer_id),
                 name: db_order.customer_name,
                 vat: db_order.customer_vat,
             },
@@ -106,7 +100,7 @@ impl From<DbOrder> for Order {
 impl Order {
     async fn lines(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<OrderLine>> {
         let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
-        let db_lines = get_order_lines_by_order_id(pool, self.id.0).await?;
+        let db_lines = get_order_lines_by_order_id(pool, self.id.as_str()).await?;
         Ok(db_lines.into_iter().map(OrderLine::from).collect())
     }
 }
@@ -124,7 +118,7 @@ impl From<DbOrderLine> for OrderLine {
             line_number: db_line.line_number,
             quantity: db_line.quantity,
             product: ProductKind {
-                id: ID::from(db_line.product_id.to_string()),
+                id: ID::from(db_line.product_id),
             },
         }
     }
@@ -150,14 +144,13 @@ impl OrderMutation {
         order: CreateOrder,
     ) -> async_graphql::Result<Order> {
         let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
-        let order_id = Uuid::new_v4();
-        let customer_id = Uuid::parse_str(order.customer.id.as_str())
-            .map_err(|_| async_graphql::Error::new("Invalid customer ID"))?;
+        let order_id = uuid::Uuid::new_v4().to_string();
+        let customer_id = order.customer.id.to_string();
 
         let db_order = insert_order(
             pool,
-            order_id,
-            customer_id,
+            &order_id,
+            &customer_id,
             &order.customer.name,
             &order.customer.vat,
             0.0,
@@ -166,13 +159,11 @@ impl OrderMutation {
         .await?;
 
         for (i, item) in order.items.iter().enumerate() {
-            let product_id = Uuid::parse_str(item.product_id.as_str())
-                .map_err(|_| async_graphql::Error::new("Invalid product ID"))?;
             insert_order_line(
                 pool,
-                Uuid::new_v4(),
-                order_id,
-                product_id,
+                &uuid::Uuid::new_v4().to_string(),
+                &order_id,
+                item.product_id.as_str(),
                 ((i + 1) * 10) as i32,
                 item.quantity,
             )

@@ -1,6 +1,6 @@
 use async_graphql::{ComplexObject, Enum, ID, MergedObject, Object, Result, SimpleObject};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
+
 
 #[derive(MergedObject, Default)]
 pub struct Query(ProductQuery, OrderQuery);
@@ -12,7 +12,7 @@ pub struct ProductQuery;
 impl ProductQuery {
     async fn product(&self, code: String) -> Product {
         Product {
-            id: ID::from(Uuid::new_v4().to_string()),
+            id: ID::from(uuid::Uuid::new_v4().to_string()),
             code,
             description: "A sample product".to_string(),
         }
@@ -43,7 +43,7 @@ impl OrderQuery {
         Order {
             id,
             customer: Customer {
-                id: ID::from(Uuid::new_v4().to_string()),
+                id: ID::from(uuid::Uuid::new_v4().to_string()),
                 name: "John Doe".to_string(),
                 vat: "123456789".to_string(),
             },
@@ -86,7 +86,7 @@ impl Order {
         vec![
             OrderLine {
                 product: Product {
-                    id: ID::from(Uuid::new_v4().to_string()),
+                    id: ID::from(uuid::Uuid::new_v4().to_string()),
                     code: "P001".to_string(),
                     description: "Sample product 1".to_string(),
                 },
@@ -102,7 +102,7 @@ impl Order {
             },
             OrderLine {
                 product: Product {
-                    id: ID::from(Uuid::new_v4().to_string()),
+                    id: ID::from(uuid::Uuid::new_v4().to_string()),
                     code: "P002".to_string(),
                     description: "Sample product 2".to_string(),
                 },

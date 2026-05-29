@@ -4,7 +4,6 @@ use async_graphql::{
 };
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::db::products::{
     DbDangerousProduct, DbExpiringProduct, DbProduct, DbProductKind, insert_product,
@@ -21,21 +20,21 @@ impl ProductQuery {
     async fn product(&self, code: String) -> ProductKind {
         if code.starts_with("D") {
             ProductKind::DangerousProduct(DangerousProduct {
-                id: ID::from(Uuid::new_v4().to_string()),
+                id: ID::from(uuid::Uuid::new_v4().to_string()),
                 code,
                 description: "A dangerous product".to_string(),
                 max_temperature: 100.0,
             })
         } else if code.starts_with("E") {
             ProductKind::ExpiringProduct(ExpiringProduct {
-                id: ID::from(Uuid::new_v4().to_string()),
+                id: ID::from(uuid::Uuid::new_v4().to_string()),
                 code,
                 description: "An expiring product".to_string(),
                 expiration_date: Utc::now() + chrono::Duration::days(30),
             })
         } else {
             ProductKind::Product(Product {
-                id: ID::from(Uuid::new_v4().to_string()),
+                id: ID::from(uuid::Uuid::new_v4().to_string()),
                 code,
                 description: "A regular product".to_string(),
             })
@@ -54,7 +53,7 @@ pub struct Product {
 impl From<DbProduct> for Product {
     fn from(db: DbProduct) -> Self {
         Self {
-            id: ID::from(db.id.to_string()),
+            id: ID::from(db.id),
             code: db.code,
             description: db.description,
         }
@@ -79,7 +78,7 @@ pub struct DangerousProduct {
 impl From<DbDangerousProduct> for DangerousProduct {
     fn from(db: DbDangerousProduct) -> Self {
         Self {
-            id: ID::from(db.id.to_string()),
+            id: ID::from(db.id),
             code: db.code,
             description: db.description,
             max_temperature: db.max_temperature,
@@ -98,7 +97,7 @@ pub struct ExpiringProduct {
 impl From<DbExpiringProduct> for ExpiringProduct {
     fn from(db: DbExpiringProduct) -> Self {
         Self {
-            id: ID::from(db.id.to_string()),
+            id: ID::from(db.id),
             code: db.code,
             description: db.description,
             expiration_date: db.expiration_date,
@@ -137,7 +136,7 @@ impl OrderQuery {
         Order {
             id,
             customer: Customer {
-                id: ID::from(Uuid::new_v4().to_string()),
+                id: ID::from(uuid::Uuid::new_v4().to_string()),
                 name: "John Doe".to_string(),
                 vat: "123456789".to_string(),
             },
@@ -180,7 +179,7 @@ impl Order {
         vec![
             OrderLine {
                 product: Product {
-                    id: ID::from(Uuid::new_v4().to_string()),
+                    id: ID::from(uuid::Uuid::new_v4().to_string()),
                     code: "P001".to_string(),
                     description: "Sample product 1".to_string(),
                 },
@@ -196,7 +195,7 @@ impl Order {
             },
             OrderLine {
                 product: Product {
-                    id: ID::from(Uuid::new_v4().to_string()),
+                    id: ID::from(uuid::Uuid::new_v4().to_string()),
                     code: "P002".to_string(),
                     description: "Sample product 2".to_string(),
                 },
@@ -249,7 +248,7 @@ impl ProductMutation {
     ) -> async_graphql::Result<ProductKind> {
         let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
 
-        let id = Uuid::new_v4();
+        let id = uuid::Uuid::new_v4().to_string();
         let persisted = insert_product(pool, product.into_write_model(id)).await?;
         Ok(persisted.into())
     }
@@ -263,7 +262,7 @@ pub enum CreateProductKind {
 }
 
 impl CreateProductKind {
-    pub fn into_write_model(self, id: Uuid) -> DbProductKind {
+    pub fn into_write_model(self, id: String) -> DbProductKind {
         match self {
             CreateProductKind::Product(p) => DbProductKind::Product(p.into_write_model(id)),
             CreateProductKind::DangerousProduct(p) => {
@@ -284,7 +283,7 @@ pub struct CreateProduct {
 }
 
 impl CreateProduct {
-    pub fn into_write_model(self, id: Uuid) -> DbProduct {
+    pub fn into_write_model(self, id: String) -> DbProduct {
         DbProduct {
             id,
             code: self.code,
@@ -302,7 +301,7 @@ pub struct CreateDangerousProduct {
 }
 
 impl CreateDangerousProduct {
-    pub fn into_write_model(self, id: Uuid) -> DbDangerousProduct {
+    pub fn into_write_model(self, id: String) -> DbDangerousProduct {
         DbDangerousProduct {
             id,
             code: self.code,
@@ -321,7 +320,7 @@ pub struct CreateExpiringProduct {
 }
 
 impl CreateExpiringProduct {
-    pub fn into_write_model(self, id: Uuid) -> DbExpiringProduct {
+    pub fn into_write_model(self, id: String) -> DbExpiringProduct {
         DbExpiringProduct {
             id,
             code: self.code,

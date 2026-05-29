@@ -1,10 +1,9 @@
 use sqlx::{FromRow, Pool, Postgres};
-use uuid::Uuid;
 
 #[derive(Debug, Clone, FromRow)]
 pub struct DbOrder {
-    pub id: Uuid,
-    pub customer_id: Uuid,
+    pub id: String,
+    pub customer_id: String,
     pub customer_name: String,
     pub customer_vat: String,
     pub total_amount: f64,
@@ -14,16 +13,16 @@ pub struct DbOrder {
 
 #[derive(Debug, Clone, FromRow)]
 pub struct DbOrderLine {
-    pub id: Uuid,
-    pub order_id: Uuid,
-    pub product_id: Uuid,
+    pub id: String,
+    pub order_id: String,
+    pub product_id: String,
     pub line_number: i32,
     pub quantity: i32,
     pub price: f64,
     pub discount: Option<f64>,
 }
 
-pub async fn get_order_by_id(pool: &Pool<Postgres>, id: Uuid) -> sqlx::Result<Option<DbOrder>> {
+pub async fn get_order_by_id(pool: &Pool<Postgres>, id: &str) -> sqlx::Result<Option<DbOrder>> {
     sqlx::query_as::<_, DbOrder>("SELECT * FROM orders WHERE id = $1")
         .bind(id)
         .fetch_optional(pool)
@@ -32,7 +31,7 @@ pub async fn get_order_by_id(pool: &Pool<Postgres>, id: Uuid) -> sqlx::Result<Op
 
 pub async fn get_order_lines_by_order_id(
     pool: &Pool<Postgres>,
-    order_id: Uuid,
+    order_id: &str,
 ) -> sqlx::Result<Vec<DbOrderLine>> {
     sqlx::query_as::<_, DbOrderLine>(
         "SELECT * FROM order_lines WHERE order_id = $1 ORDER BY line_number",
@@ -44,7 +43,7 @@ pub async fn get_order_lines_by_order_id(
 
 pub async fn get_order_by_customer_id(
     pool: &Pool<Postgres>,
-    customer_id: Uuid,
+    customer_id: &str,
 ) -> sqlx::Result<Option<DbOrder>> {
     sqlx::query_as::<_, DbOrder>("SELECT * FROM orders WHERE customer_id = $1")
         .bind(customer_id)
@@ -54,8 +53,8 @@ pub async fn get_order_by_customer_id(
 
 pub async fn insert_order(
     pool: &Pool<Postgres>,
-    id: Uuid,
-    customer_id: Uuid,
+    id: &str,
+    customer_id: &str,
     customer_name: &str,
     customer_vat: &str,
     total_amount: f64,
@@ -77,9 +76,9 @@ pub async fn insert_order(
 
 pub async fn insert_order_line(
     pool: &Pool<Postgres>,
-    id: Uuid,
-    order_id: Uuid,
-    product_id: Uuid,
+    id: &str,
+    order_id: &str,
+    product_id: &str,
     line_number: i32,
     quantity: i32,
 ) -> sqlx::Result<DbOrderLine> {

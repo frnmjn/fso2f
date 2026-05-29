@@ -3,7 +3,7 @@ use async_graphql::{
 };
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
+
 
 #[derive(MergedObject, Default)]
 pub struct Query(ProductQuery, OrderQuery);
@@ -16,21 +16,21 @@ impl ProductQuery {
     async fn product(&self, code: String) -> ProductKind {
         if code.starts_with("D") {
             ProductKind::DangerousProduct(DangerousProduct {
-                id: ID::from(Uuid::new_v4().to_string()),
+                id: ID::from(uuid::Uuid::new_v4().to_string()),
                 code,
                 description: "A dangerous product".to_string(),
                 max_temperature: 100.0,
             })
         } else if code.starts_with("E") {
             ProductKind::ExpiringProduct(ExpiringProduct {
-                id: ID::from(Uuid::new_v4().to_string()),
+                id: ID::from(uuid::Uuid::new_v4().to_string()),
                 code,
                 description: "An expiring product".to_string(),
                 expiration_date: Utc::now() + chrono::Duration::days(30),
             })
         } else {
             ProductKind::Product(Product {
-                id: ID::from(Uuid::new_v4().to_string()),
+                id: ID::from(uuid::Uuid::new_v4().to_string()),
                 code,
                 description: "A regular product".to_string(),
             })
@@ -90,7 +90,7 @@ impl OrderQuery {
         Order {
             id,
             customer: Customer {
-                id: ID::from(Uuid::new_v4().to_string()),
+                id: ID::from(uuid::Uuid::new_v4().to_string()),
                 name: "John Doe".to_string(),
                 vat: "123456789".to_string(),
             },
@@ -133,7 +133,7 @@ impl Order {
         vec![
             OrderLine {
                 product: Product {
-                    id: ID::from(Uuid::new_v4().to_string()),
+                    id: ID::from(uuid::Uuid::new_v4().to_string()),
                     code: "P001".to_string(),
                     description: "Sample product 1".to_string(),
                 },
@@ -149,7 +149,7 @@ impl Order {
             },
             OrderLine {
                 product: Product {
-                    id: ID::from(Uuid::new_v4().to_string()),
+                    id: ID::from(uuid::Uuid::new_v4().to_string()),
                     code: "P002".to_string(),
                     description: "Sample product 2".to_string(),
                 },

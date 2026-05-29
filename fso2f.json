@@ -83,6 +83,12 @@
       "instructions": "pagination",
       "test": "_14_pagination",
       "solution": ""
+    },
+    {
+      "name": "15",
+      "instructions": "cynic",
+      "test": "_15_cynic",
+      "solution": ""
     }
   ]
 }
