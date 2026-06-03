@@ -1,5 +1,6 @@
 use async_graphql::{ComplexObject, Context, Enum, ID, MergedObject, Object, Result, SimpleObject};
 use serde::{Deserialize, Serialize};
+use sqlx::{Pool, Postgres};
 
 use crate::db::{
     customers::{DbCustomer, get_customer_by_id},
@@ -15,7 +16,7 @@ struct OrderQuery;
 #[Object]
 impl OrderQuery {
     async fn order(&self, ctx: &Context<'_>, id: ID) -> Result<Option<Order>> {
-        let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
+        let pool = ctx.data::<Pool<Postgres>>()?;
         let db_order = get_order_by_id(pool, id.as_str()).await?;
         Ok(db_order.map(Order::from))
     }
@@ -31,7 +32,7 @@ impl OrderQuery {
         ctx: &Context<'_>,
         #[graphql(key)] id: ID,
     ) -> async_graphql::Result<Option<Customer>> {
-        let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
+        let pool = ctx.data::<Pool<Postgres>>()?;
         let db_customer = get_customer_by_id(pool, id.as_str()).await?;
         Ok(db_customer.map(Customer::from))
     }
@@ -96,7 +97,7 @@ pub enum OrderStatus {
 #[ComplexObject]
 impl Order {
     async fn lines(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<OrderLine>> {
-        let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
+        let pool = ctx.data::<Pool<Postgres>>()?;
         let db_lines = get_order_lines_by_order_id(pool, self.id.as_str()).await?;
         Ok(db_lines.into_iter().map(OrderLine::from).collect())
     }

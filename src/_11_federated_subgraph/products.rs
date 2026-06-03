@@ -3,6 +3,7 @@ use async_graphql::{
     SimpleObject,
 };
 use chrono::{DateTime, Utc};
+use sqlx::{Pool, Postgres};
 
 use crate::db::products::{
     DbDangerousProduct, DbExpiringProduct, DbProduct, DbProductKind, get_dangerous_product_by_id,
@@ -47,7 +48,7 @@ impl ProductQuery {
         ctx: &Context<'_>,
         #[graphql(key)] id: ID,
     ) -> async_graphql::Result<Product> {
-        let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
+        let pool = ctx.data::<Pool<Postgres>>()?;
         let db_product = get_product_by_id(pool, id.as_str())
             .await?
             .ok_or_else(|| async_graphql::Error::new("Standard product not found"))?;
@@ -60,7 +61,7 @@ impl ProductQuery {
         ctx: &Context<'_>,
         #[graphql(key)] id: ID,
     ) -> async_graphql::Result<ExpiringProduct> {
-        let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
+        let pool = ctx.data::<Pool<Postgres>>()?;
         let db_product = get_expiring_product_by_id(pool, id.as_str())
             .await?
             .ok_or_else(|| async_graphql::Error::new("Expiring product not found"))?;
@@ -73,7 +74,7 @@ impl ProductQuery {
         ctx: &Context<'_>,
         #[graphql(key)] id: ID,
     ) -> async_graphql::Result<DangerousProduct> {
-        let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
+        let pool = ctx.data::<Pool<Postgres>>()?;
         let db_product = get_dangerous_product_by_id(pool, id.as_str())
             .await?
             .ok_or_else(|| async_graphql::Error::new("Dangerous product not found"))?;
@@ -86,7 +87,7 @@ impl ProductQuery {
         ctx: &Context<'_>,
         #[graphql(key)] id: ID,
     ) -> async_graphql::Result<ProductKind> {
-        let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
+        let pool = ctx.data::<Pool<Postgres>>()?;
         let db_product = retrieve_product_by_id(pool, id.as_str())
             .await?
             .ok_or_else(|| async_graphql::Error::new("Product not found"))?;
@@ -192,7 +193,7 @@ impl ProductMutation {
         ctx: &Context<'_>,
         product: CreateProductKind,
     ) -> async_graphql::Result<ProductKind> {
-        let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
+        let pool = ctx.data::<Pool<Postgres>>()?;
 
         let id = uuid::Uuid::new_v4().to_string();
         let persisted = insert_product(pool, product.into_write_model(id)).await?;

@@ -2,6 +2,7 @@ use async_graphql::{EmptySubscription, Request, Schema, Variables};
 use fso2f::_09_one_of::schema::{Mutation, Query};
 use fso2f::db::products::retrieve_product_by_id;
 use serde_json::{Value, json};
+use sqlx::PgPool;
 
 const MUTATION: &str = r#"
     mutation ($product: CreateProductKind!) {
@@ -29,7 +30,7 @@ const MUTATION: &str = r#"
 
 #[tokio::test]
 async fn ex_9() {
-    let pool = sqlx::PgPool::connect("postgres://fso2f:fso2f@localhost:5432/fso2f")
+    let pool = PgPool::connect("postgres://fso2f:fso2f@localhost:5432/fso2f")
         .await
         .unwrap();
     let schema = Schema::build(Query::default(), Mutation::default(), EmptySubscription)

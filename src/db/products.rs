@@ -1,4 +1,4 @@
-use sqlx::{FromRow, Pool, Postgres};
+use sqlx::{FromRow, Pool, Postgres, Result, query, query_as};
 
 #[derive(Debug, Clone)]
 pub enum DbProductKind {
@@ -11,7 +11,7 @@ pub struct DbProduct {
     pub id: String,
     pub code: String,
     pub description: String,
-} 
+}
 
 #[derive(Debug, Clone, FromRow)]
 pub struct DbDangerousProduct {
@@ -32,8 +32,8 @@ pub struct DbExpiringProduct {
 pub async fn retrieve_product_by_id(
     pool: &Pool<Postgres>,
     id: &str,
-) -> sqlx::Result<Option<DbProductKind>> {
-    let row: Option<(String,)> = sqlx::query_as("SELECT kind FROM products WHERE id = $1")
+) -> Result<Option<DbProductKind>> {
+    let row: Option<(String,)> = query_as("SELECT kind FROM products WHERE id = $1")
         .bind(id)
         .fetch_optional(pool)
         .await?;
@@ -51,8 +51,8 @@ pub async fn retrieve_product_by_id(
     }
 }
 
-pub async fn get_product_by_id(pool: &Pool<Postgres>, id: &str) -> sqlx::Result<Option<DbProduct>> {
-    sqlx::query_as::<_, DbProduct>("SELECT id, code, description FROM products WHERE id = $1")
+pub async fn get_product_by_id(pool: &Pool<Postgres>, id: &str) -> Result<Option<DbProduct>> {
+    query_as::<_, DbProduct>("SELECT id, code, description FROM products WHERE id = $1")
         .bind(id)
         .fetch_optional(pool)
         .await
@@ -61,8 +61,8 @@ pub async fn get_product_by_id(pool: &Pool<Postgres>, id: &str) -> sqlx::Result<
 pub async fn get_dangerous_product_by_id(
     pool: &Pool<Postgres>,
     id: &str,
-) -> sqlx::Result<Option<DbDangerousProduct>> {
-    sqlx::query_as::<_, DbDangerousProduct>(
+) -> Result<Option<DbDangerousProduct>> {
+    query_as::<_, DbDangerousProduct>(
         "SELECT p.id, p.code, p.description, dp.max_temperature \
          FROM products p JOIN dangerous_products dp ON p.id = dp.id \
          WHERE p.id = $1",
@@ -75,8 +75,8 @@ pub async fn get_dangerous_product_by_id(
 pub async fn get_expiring_product_by_id(
     pool: &Pool<Postgres>,
     id: &str,
-) -> sqlx::Result<Option<DbExpiringProduct>> {
-    sqlx::query_as::<_, DbExpiringProduct>(
+) -> Result<Option<DbExpiringProduct>> {
+    query_as::<_, DbExpiringProduct>(
         "SELECT p.id, p.code, p.description, ep.expiration_date \
          FROM products p JOIN expiring_products ep ON p.id = ep.id \
          WHERE p.id = $1",
@@ -89,7 +89,7 @@ pub async fn get_expiring_product_by_id(
 pub async fn insert_product(
     pool: &Pool<Postgres>,
     product: DbProductKind,
-) -> sqlx::Result<DbProductKind> {
+) -> Result<DbProductKind> {
     Ok(match product {
         DbProductKind::Product(p) => {
             DbProductKind::Product(insert_standard_product(pool, p).await?)
@@ -106,8 +106,8 @@ pub async fn insert_product(
 pub async fn insert_standard_product(
     pool: &Pool<Postgres>,
     product: DbProduct,
-) -> sqlx::Result<DbProduct> {
-    sqlx::query_as::<_, DbProduct>(
+) -> Result<DbProduct> {
+    query_as::<_, DbProduct>(
         "INSERT INTO products (id, code, description, kind) \
          VALUES ($1, $2, $3, $4) \
          RETURNING id, code, description",
@@ -123,10 +123,10 @@ pub async fn insert_standard_product(
 pub async fn insert_dangerous_product(
     pool: &Pool<Postgres>,
     product: DbDangerousProduct,
-) -> sqlx::Result<DbDangerousProduct> {
+) -> Result<DbDangerousProduct> {
     let mut tx = pool.begin().await?;
 
-    sqlx::query(
+    query(
         "INSERT INTO products (id, code, description, kind) \
          VALUES ($1, $2, $3, $4)",
     )
@@ -137,13 +137,13 @@ pub async fn insert_dangerous_product(
     .execute(&mut *tx)
     .await?;
 
-    sqlx::query("INSERT INTO dangerous_products (id, max_temperature) VALUES ($1, $2)")
+    query("INSERT INTO dangerous_products (id, max_temperature) VALUES ($1, $2)")
         .bind(&product.id)
         .bind(product.max_temperature)
         .execute(&mut *tx)
         .await?;
 
-    let row = sqlx::query_as::<_, DbDangerousProduct>(
+    let row = query_as::<_, DbDangerousProduct>(
         "SELECT p.id, p.code, p.description, dp.max_temperature \
          FROM products p JOIN dangerous_products dp ON p.id = dp.id \
          WHERE p.id = $1",
@@ -159,10 +159,10 @@ pub async fn insert_dangerous_product(
 pub async fn insert_expiring_product(
     pool: &Pool<Postgres>,
     product: DbExpiringProduct,
-) -> sqlx::Result<DbExpiringProduct> {
+) -> Result<DbExpiringProduct> {
     let mut tx = pool.begin().await?;
 
-    sqlx::query(
+    query(
         "INSERT INTO products (id, code, description, kind) \
          VALUES ($1, $2, $3, $4)",
     )
@@ -173,13 +173,13 @@ pub async fn insert_expiring_product(
     .execute(&mut *tx)
     .await?;
 
-    sqlx::query("INSERT INTO expiring_products (id, expiration_date) VALUES ($1, $2)")
+    query("INSERT INTO expiring_products (id, expiration_date) VALUES ($1, $2)")
         .bind(&product.id)
         .bind(product.expiration_date)
         .execute(&mut *tx)
         .await?;
 
-    let row = sqlx::query_as::<_, DbExpiringProduct>(
+    let row = query_as::<_, DbExpiringProduct>(
         "SELECT p.id, p.code, p.description, ep.expiration_date \
          FROM products p JOIN expiring_products ep ON p.id = ep.id \
          WHERE p.id = $1",

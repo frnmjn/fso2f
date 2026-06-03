@@ -6,10 +6,10 @@ use axum::{
     routing::get,
 };
 use fso2f::_10_federation::orders::Query;
-use sqlx::postgres::PgPoolOptions;
+use sqlx::{Error, postgres::PgPoolOptions};
 
 #[tokio::main]
-async fn main() -> Result<(), sqlx::Error> {
+async fn main() -> Result<(), Error> {
     // initialize tracing
     tracing_subscriber::fmt::init();
 

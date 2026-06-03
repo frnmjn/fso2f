@@ -4,6 +4,7 @@ use async_graphql::{
 };
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use sqlx::{Pool, Postgres};
 
 use crate::db::products::{
     DbDangerousProduct, DbExpiringProduct, DbProduct, DbProductKind, insert_product,
@@ -246,7 +247,7 @@ impl ProductMutation {
         ctx: &Context<'_>,
         product: CreateProductKind,
     ) -> async_graphql::Result<ProductKind> {
-        let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
+        let pool = ctx.data::<Pool<Postgres>>()?;
 
         let id = uuid::Uuid::new_v4().to_string();
         let persisted = insert_product(pool, product.into_write_model(id)).await?;

@@ -1,4 +1,4 @@
-use sqlx::{FromRow, Pool, Postgres};
+use sqlx::{FromRow, Pool, Postgres, Result, query_as};
 
 #[derive(Debug, Clone, FromRow)]
 pub struct DbOrder {
@@ -22,8 +22,8 @@ pub struct DbOrderLine {
     pub discount: Option<f64>,
 }
 
-pub async fn get_order_by_id(pool: &Pool<Postgres>, id: &str) -> sqlx::Result<Option<DbOrder>> {
-    sqlx::query_as::<_, DbOrder>("SELECT * FROM orders WHERE id = $1")
+pub async fn get_order_by_id(pool: &Pool<Postgres>, id: &str) -> Result<Option<DbOrder>> {
+    query_as::<_, DbOrder>("SELECT * FROM orders WHERE id = $1")
         .bind(id)
         .fetch_optional(pool)
         .await
@@ -32,20 +32,18 @@ pub async fn get_order_by_id(pool: &Pool<Postgres>, id: &str) -> sqlx::Result<Op
 pub async fn get_order_lines_by_order_id(
     pool: &Pool<Postgres>,
     order_id: &str,
-) -> sqlx::Result<Vec<DbOrderLine>> {
-    sqlx::query_as::<_, DbOrderLine>(
-        "SELECT * FROM order_lines WHERE order_id = $1 ORDER BY line_number",
-    )
-    .bind(order_id)
-    .fetch_all(pool)
-    .await
+) -> Result<Vec<DbOrderLine>> {
+    query_as::<_, DbOrderLine>("SELECT * FROM order_lines WHERE order_id = $1 ORDER BY line_number")
+        .bind(order_id)
+        .fetch_all(pool)
+        .await
 }
 
 pub async fn get_order_by_customer_id(
     pool: &Pool<Postgres>,
     customer_id: &str,
-) -> sqlx::Result<Option<DbOrder>> {
-    sqlx::query_as::<_, DbOrder>("SELECT * FROM orders WHERE customer_id = $1")
+) -> Result<Option<DbOrder>> {
+    query_as::<_, DbOrder>("SELECT * FROM orders WHERE customer_id = $1")
         .bind(customer_id)
         .fetch_optional(pool)
         .await
@@ -59,8 +57,8 @@ pub async fn insert_order(
     customer_vat: &str,
     total_amount: f64,
     status: &str,
-) -> sqlx::Result<DbOrder> {
-    sqlx::query_as::<_, DbOrder>(
+) -> Result<DbOrder> {
+    query_as::<_, DbOrder>(
         "INSERT INTO orders (id, customer_id, customer_name, customer_vat, total_amount, status) \
          VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
     )
@@ -81,8 +79,8 @@ pub async fn insert_order_line(
     product_id: &str,
     line_number: i32,
     quantity: i32,
-) -> sqlx::Result<DbOrderLine> {
-    sqlx::query_as::<_, DbOrderLine>(
+) -> Result<DbOrderLine> {
+    query_as::<_, DbOrderLine>(
         "INSERT INTO order_lines (id, order_id, product_id, line_number, quantity) \
          VALUES ($1, $2, $3, $4, $5) RETURNING *",
     )

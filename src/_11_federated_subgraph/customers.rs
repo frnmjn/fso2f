@@ -1,4 +1,5 @@
 use async_graphql::{Context, ID, MergedObject, Object, SimpleObject};
+use sqlx::{Pool, Postgres};
 
 use crate::db::customers::{DbCustomer, get_customer_by_id};
 
@@ -11,7 +12,7 @@ pub struct CustomerQuery;
 #[Object]
 impl CustomerQuery {
     async fn customer(&self, ctx: &Context<'_>, id: ID) -> async_graphql::Result<Customer> {
-        let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
+        let pool = ctx.data::<Pool<Postgres>>()?;
         let db_customer = get_customer_by_id(pool, id.as_str())
             .await?
             .ok_or_else(|| async_graphql::Error::new("Customer not found"))?;
@@ -24,7 +25,7 @@ impl CustomerQuery {
         ctx: &Context<'_>,
         #[graphql(key)] id: ID,
     ) -> async_graphql::Result<Customer> {
-        let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
+        let pool = ctx.data::<Pool<Postgres>>()?;
         let db_customer = get_customer_by_id(pool, id.as_str())
             .await?
             .ok_or_else(|| async_graphql::Error::new("Customer not found"))?;

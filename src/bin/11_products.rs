@@ -7,10 +7,10 @@ use axum::{
 };
 
 use fso2f::_11_federated_subgraph::products::{Mutation, Query};
-use sqlx::postgres::PgPoolOptions;
+use sqlx::{Error, postgres::PgPoolOptions};
 
 #[tokio::main]
-async fn main() -> Result<(), sqlx::Error> {
+async fn main() -> Result<(), Error> {
     tracing_subscriber::fmt::init();
 
     let database_url = std::env::var("DATABASE_URL")

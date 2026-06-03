@@ -1,8 +1,8 @@
 use axum::{Router, routing::get};
-use sqlx::postgres::PgPoolOptions;
+use sqlx::{Error, postgres::PgPoolOptions};
 
 #[tokio::main]
-async fn main() -> Result<(), sqlx::Error> {
+async fn main() -> Result<(), Error> {
     tracing_subscriber::fmt::init();
 
     let pool = PgPoolOptions::new()
