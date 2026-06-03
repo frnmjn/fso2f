@@ -44,9 +44,6 @@ pub struct Customer {
     pub phone: String,
 }
 
-#[derive(Default)]
-pub struct Mutation;
-
 impl From<DbCustomer> for Customer {
     fn from(value: DbCustomer) -> Self {
         Self {
@@ -58,6 +55,3 @@ impl From<DbCustomer> for Customer {
         }
     }
 }
-
-#[derive(Default)]
-pub struct Subscription;

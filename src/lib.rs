@@ -8,5 +8,5 @@ pub mod _07_interface;
 pub mod _08_mutation;
 pub mod _09_one_of;
 pub mod _10_federation;
+pub mod _11_federated_subgraph;
 pub mod db;
-pub mod schema;

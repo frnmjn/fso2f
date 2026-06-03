@@ -56,13 +56,6 @@ description = "Export GraphQL schemas to files"
 command = "cargo"
 args = ["run", "--bin", "export-schemas"]
 
-[tasks.export-federated-schema]
-description = "Export federated schema to GraphQL SDL"
-script = '''
-jq -r '.engineConfig.graphqlSchema' schemas/federation/router.json > schemas/federation/federated-schema.graphql
-echo "✅ Federated schema exported to schemas/federation/federated-schema.graphql"
-'''
-
 [tasks.local]
 description = "Run all subgraphs locally with local router"
 script = '''
@@ -230,7 +223,6 @@ echo ""
 echo "Local Federation:"
 echo "  cargo make wgc-build-router                         - Build router configuration"
 echo "  cargo make export-schemas                           - Export GraphQL schemas"
-echo "  cargo make export-federated-schema                  - Export federated schema"
 echo "  cargo make local                                    - Run all subgraphs with local router"
 echo ""
 echo "Federation:"

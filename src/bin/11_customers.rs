@@ -6,7 +6,7 @@ use axum::{
     routing::get,
 };
 
-use fso2f::schema::customers::Query;
+use fso2f::_11_federated_subgraph::customers::Query;
 use sqlx::postgres::PgPoolOptions;
 
 #[tokio::main]

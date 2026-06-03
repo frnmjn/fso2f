@@ -19,9 +19,3 @@ impl FakeCustomerQuery {
 pub struct Customer {
     pub id: ID,
 }
-
-#[derive(Default)]
-pub struct Mutation;
-
-#[derive(Default)]
-pub struct Subscription;

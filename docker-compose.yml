@@ -31,6 +31,7 @@ services:
       - local
 
   products-subgraph-local:
+    container_name: products-subgraph
     build: .
     working_dir: /app
     command: cargo run --bin 10_products
@@ -50,6 +51,7 @@ services:
       - local
 
   orders-subgraph-local:
+    container_name: orders-subgraph
     build: .
     working_dir: /app
     command: cargo run --bin 10_orders
@@ -101,6 +103,7 @@ services:
       - control-plane
 
   products-subgraph-control-plane:
+    container_name: products-subgraph
     build: .
     working_dir: /app
     command: cargo run --bin 11_products
@@ -120,6 +123,7 @@ services:
       - control-plane
 
   orders-subgraph-control-plane:
+    container_name: orders-subgraph
     build: .
     working_dir: /app
     command: cargo run --bin 11_orders

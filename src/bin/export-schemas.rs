@@ -3,6 +3,10 @@ use fso2f::{
     _01_simple_object, _02_complex_object, _03_merged_object, _04_real_graph, _05_modeling,
     _06_union, _07_interface, _08_mutation, _09_one_of,
     _10_federation::{orders, products},
+    _11_federated_subgraph::{
+        customers as fs_customers, fake_customers as fs_fake_customers, orders as fs_orders,
+        products as fs_products,
+    },
 };
 use std::fs;
 
@@ -102,6 +106,42 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "schemas/10_orders.graphql",
             Schema::new(orders::Query::default(), EmptyMutation, EmptySubscription)
                 .sdl_with_options(SDLExportOptions::new().federation()),
+        ),
+        (
+            "schemas/11_products.graphql",
+            Schema::new(
+                fs_products::Query::default(),
+                fs_products::Mutation::default(),
+                EmptySubscription,
+            )
+            .sdl_with_options(SDLExportOptions::new().federation()),
+        ),
+        (
+            "schemas/11_orders.graphql",
+            Schema::new(
+                fs_orders::Query::default(),
+                EmptyMutation,
+                EmptySubscription,
+            )
+            .sdl_with_options(SDLExportOptions::new().federation()),
+        ),
+        (
+            "schemas/11_customers.graphql",
+            Schema::new(
+                fs_customers::Query::default(),
+                EmptyMutation,
+                EmptySubscription,
+            )
+            .sdl_with_options(SDLExportOptions::new().federation()),
+        ),
+        (
+            "schemas/11_fake_customers.graphql",
+            Schema::new(
+                fs_fake_customers::Query::default(),
+                EmptyMutation,
+                EmptySubscription,
+            )
+            .sdl_with_options(SDLExportOptions::new().federation()),
         ),
     ];
 

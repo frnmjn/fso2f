@@ -6,7 +6,7 @@ use axum::{
     routing::get,
 };
 
-use fso2f::_10_federation::products::Query;
+use fso2f::_11_federated_subgraph::orders::Query;
 use sqlx::postgres::PgPoolOptions;
 
 #[tokio::main]
