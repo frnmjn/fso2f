@@ -30,7 +30,7 @@ services:
     profiles:
       - local
 
-  products-subgraph:
+  products-subgraph-local:
     build: .
     working_dir: /app
     command: cargo run --bin 10_products
@@ -49,7 +49,7 @@ services:
     profiles:
       - local
 
-  orders-subgraph:
+  orders-subgraph-local:
     build: .
     working_dir: /app
     command: cargo run --bin 10_orders
@@ -68,10 +68,23 @@ services:
     profiles:
       - local
 
-  customers-subgraph:
-    build: .
+  wundergraph-router-control-plane:
+    image: ghcr.io/wundergraph/cosmo/router
+    environment:
+      DEV_MODE: true
+      LISTEN_ADDR: '0.0.0.0:5000'
+      GRAPH_API_TOKEN: ${GRAPH_API_TOKEN}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - '5000:5000'
+    profiles:
+      - control-plane
+
+  customers-subgraph-control-plane:
+    build: .  
     working_dir: /app
-    command: cargo run --bin customers-subgraph
+    command: cargo run --bin 11_customers
     ports:
       - "3003:3003"
     environment:
@@ -87,20 +100,43 @@ services:
     profiles:
       - control-plane
 
-  wundergraph-router-control-plane:
-    image: ghcr.io/wundergraph/cosmo/router
-    environment:
-      DEV_MODE: true
-      LISTEN_ADDR: '0.0.0.0:5000'
-      GRAPH_API_TOKEN: ${GRAPH_API_TOKEN}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+  products-subgraph-control-plane:
+    build: .
+    working_dir: /app
+    command: cargo run --bin 11_products
     ports:
-      - '5000:5000'
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgres://fso2f:fso2f@postgres:5432/fso2f
+      RUST_LOG: info
+    volumes:
+      - .:/app
+      - cargo-cache:/usr/local/cargo/registry
+      - target-cache:/app/target
+    depends_on:
+      postgres:
+        condition: service_healthy
     profiles:
       - control-plane
 
-  
+  orders-subgraph-control-plane:
+    build: .
+    working_dir: /app
+    command: cargo run --bin 11_orders
+    ports:
+      - "3002:3002"
+    environment:
+      DATABASE_URL: postgres://fso2f:fso2f@postgres:5432/fso2f
+      RUST_LOG: info
+    volumes:
+      - .:/app
+      - cargo-cache:/usr/local/cargo/registry
+      - target-cache:/app/target
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - control-plane
 
 volumes:
   cargo-cache: {}

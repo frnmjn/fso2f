@@ -57,7 +57,7 @@
     {
       "name": "10",
       "instructions": "Split the monolith in two services, exposing a federated schema with new fields",
-      "test": "_10_federated_schema",
+      "test": "_10_federation",
       "solution": ""
     },
     {

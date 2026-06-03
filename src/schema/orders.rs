@@ -1,7 +1,6 @@
 use async_graphql::{
     ComplexObject, Context, Enum, ID, InputObject, MergedObject, Object, SimpleObject,
 };
-use serde::{Deserialize, Serialize};
 
 use crate::db::orders::{
     DbOrder, DbOrderLine, get_order_by_customer_id, get_order_by_id, get_order_lines_by_order_id,
