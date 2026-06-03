@@ -84,6 +84,7 @@ services:
       - control-plane
 
   customers-subgraph-control-plane:
+    container_name: customers-subgraph
     build: .  
     working_dir: /app
     command: cargo run --bin 11_customers

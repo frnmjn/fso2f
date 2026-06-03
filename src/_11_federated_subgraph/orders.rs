@@ -1,7 +1,10 @@
-use async_graphql::{ComplexObject, Context, Enum, ID, MergedObject, Object, SimpleObject};
+use async_graphql::{ComplexObject, Context, Enum, ID, MergedObject, Object, Result, SimpleObject};
 use serde::{Deserialize, Serialize};
 
-use crate::db::orders::{DbOrder, DbOrderLine, get_order_by_id, get_order_lines_by_order_id};
+use crate::db::{
+    customers::{DbCustomer, get_customer_by_id},
+    orders::{DbOrder, DbOrderLine, get_order_by_id, get_order_lines_by_order_id},
+};
 
 #[derive(MergedObject, Default)]
 pub struct Query(OrderQuery);
@@ -11,7 +14,7 @@ struct OrderQuery;
 
 #[Object]
 impl OrderQuery {
-    async fn order(&self, ctx: &Context<'_>, id: ID) -> async_graphql::Result<Option<Order>> {
+    async fn order(&self, ctx: &Context<'_>, id: ID) -> Result<Option<Order>> {
         let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
         let db_order = get_order_by_id(pool, id.as_str()).await?;
         Ok(db_order.map(Order::from))
@@ -20,6 +23,17 @@ impl OrderQuery {
     #[graphql(entity)]
     async fn find_product_kind_by_id(&self, #[graphql(key)] id: ID) -> ProductKind {
         ProductKind { id }
+    }
+
+    #[graphql(entity)]
+    async fn find_customer_by_id(
+        &self,
+        ctx: &Context<'_>,
+        #[graphql(key)] id: ID,
+    ) -> async_graphql::Result<Option<Customer>> {
+        let pool = ctx.data::<sqlx::Pool<sqlx::Postgres>>()?;
+        let db_customer = get_customer_by_id(pool, id.as_str()).await?;
+        Ok(db_customer.map(Customer::from))
     }
 }
 
@@ -59,6 +73,16 @@ pub struct Customer {
     pub id: ID,
     pub name: String,
     pub vat: String,
+}
+
+impl From<DbCustomer> for Customer {
+    fn from(c: DbCustomer) -> Self {
+        Self {
+            id: ID::from(c.id),
+            name: c.name,
+            vat: c.vat,
+        }
+    }
 }
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
