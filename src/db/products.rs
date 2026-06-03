@@ -51,6 +51,28 @@ pub async fn retrieve_product_by_id(
     }
 }
 
+pub async fn retrieve_product_by_code(
+    pool: &Pool<Postgres>,
+    code: &str,
+) -> Result<Option<DbProductKind>> {
+    let row: Option<(String, String)> = query_as("SELECT id, kind FROM products WHERE code = $1")
+        .bind(code)
+        .fetch_optional(pool)
+        .await?;
+    match row.as_ref().map(|r| (r.0.as_str(), r.1.as_str())) {
+        Some((id, "dangerous")) => Ok(get_dangerous_product_by_id(pool, id)
+            .await?
+            .map(DbProductKind::Dangerous)),
+        Some((id, "expiring")) => Ok(get_expiring_product_by_id(pool, id)
+            .await?
+            .map(DbProductKind::Expiring)),
+        Some((id, _)) => Ok(get_product_by_id(pool, id)
+            .await?
+            .map(DbProductKind::Product)),
+        None => Ok(None),
+    }
+}
+
 pub async fn get_product_by_id(pool: &Pool<Postgres>, id: &str) -> Result<Option<DbProduct>> {
     query_as::<_, DbProduct>("SELECT id, code, description FROM products WHERE id = $1")
         .bind(id)

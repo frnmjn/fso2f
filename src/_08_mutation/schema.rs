@@ -6,7 +6,11 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Postgres};
 
-use crate::db::products::{DbProduct, insert_standard_product};
+use crate::db::orders::{DbOrder, get_order_by_id, get_order_lines_by_order_id};
+use crate::db::products::{
+    DbDangerousProduct, DbExpiringProduct, DbProduct, DbProductKind, get_product_by_id,
+    insert_standard_product, retrieve_product_by_code,
+};
 
 #[derive(MergedObject, Default)]
 pub struct Query(ProductQuery, OrderQuery);
@@ -16,28 +20,10 @@ pub struct ProductQuery;
 
 #[Object]
 impl ProductQuery {
-    async fn product(&self, code: String) -> ProductKind {
-        if code.starts_with("D") {
-            ProductKind::DangerousProduct(DangerousProduct {
-                id: ID::from(uuid::Uuid::new_v4().to_string()),
-                code,
-                description: "A dangerous product".to_string(),
-                max_temperature: 100.0,
-            })
-        } else if code.starts_with("E") {
-            ProductKind::ExpiringProduct(ExpiringProduct {
-                id: ID::from(uuid::Uuid::new_v4().to_string()),
-                code,
-                description: "An expiring product".to_string(),
-                expiration_date: Utc::now() + chrono::Duration::days(30),
-            })
-        } else {
-            ProductKind::Product(Product {
-                id: ID::from(uuid::Uuid::new_v4().to_string()),
-                code,
-                description: "A regular product".to_string(),
-            })
-        }
+    async fn product(&self, ctx: &Context<'_>, code: String) -> Result<Option<ProductKind>> {
+        let pool = ctx.data::<Pool<Postgres>>()?;
+        let product = retrieve_product_by_code(pool, &code).await?;
+        Ok(product.map(ProductKind::from))
     }
 }
 
@@ -89,20 +75,10 @@ struct OrderQuery;
 
 #[Object]
 impl OrderQuery {
-    async fn order(&self, id: ID) -> Order {
-        Order {
-            id,
-            customer: Customer {
-                id: ID::from(uuid::Uuid::new_v4().to_string()),
-                name: "John Doe".to_string(),
-                vat: "123456789".to_string(),
-            },
-            total_amount: Money {
-                amount: 99.99,
-                currency: Currency::EUR,
-            },
-            status: OrderStatus::Draft,
-        }
+    async fn order(&self, ctx: &Context<'_>, id: ID) -> Result<Option<Order>> {
+        let pool = ctx.data::<Pool<Postgres>>()?;
+        let db_order = get_order_by_id(pool, id.as_str()).await?;
+        Ok(db_order.map(Order::from))
     }
 }
 
@@ -132,38 +108,33 @@ pub enum OrderStatus {
 
 #[ComplexObject]
 impl Order {
-    async fn lines(&self) -> Vec<OrderLine> {
-        vec![
-            OrderLine {
-                product: Product {
-                    id: ID::from(uuid::Uuid::new_v4().to_string()),
-                    code: "P001".to_string(),
-                    description: "Sample product 1".to_string(),
-                },
-                quantity: 2,
+    async fn lines(&self, ctx: &Context<'_>) -> Result<Vec<OrderLine>> {
+        let pool = ctx.data::<Pool<Postgres>>()?;
+        let db_lines = get_order_lines_by_order_id(pool, self.id.as_str()).await?;
+        let mut lines = Vec::new();
+        for line in db_lines {
+            let product = get_product_by_id(pool, &line.product_id)
+                .await?
+                .map(Product::from)
+                .unwrap_or(Product {
+                    id: ID::from(line.product_id),
+                    code: "UNKNOWN".to_string(),
+                    description: "Unknown product".to_string(),
+                });
+            lines.push(OrderLine {
+                product,
+                quantity: line.quantity,
                 price: Money {
-                    amount: 67.19,
+                    amount: line.price,
                     currency: Currency::EUR,
                 },
-                discount: Some(Money {
-                    amount: 10.0,
+                discount: line.discount.map(|d| Money {
+                    amount: d,
                     currency: Currency::EUR,
                 }),
-            },
-            OrderLine {
-                product: Product {
-                    id: ID::from(uuid::Uuid::new_v4().to_string()),
-                    code: "P002".to_string(),
-                    description: "Sample product 2".to_string(),
-                },
-                quantity: 1,
-                price: Money {
-                    amount: 49.99,
-                    currency: Currency::EUR,
-                },
-                discount: None,
-            },
-        ]
+            });
+        }
+        Ok(lines)
     }
 }
 
@@ -231,6 +202,60 @@ impl From<DbProduct> for Product {
             id: ID::from(db.id),
             code: db.code,
             description: db.description,
+        }
+    }
+}
+
+impl From<DbOrder> for Order {
+    fn from(db: DbOrder) -> Self {
+        Self {
+            id: ID::from(db.id),
+            customer: Customer {
+                id: ID::from(db.customer_id),
+                name: db.customer_name,
+                vat: db.customer_vat,
+            },
+            total_amount: Money {
+                amount: db.total_amount,
+                currency: Currency::EUR,
+            },
+            status: match db.status.as_str() {
+                "Confirmed" => OrderStatus::Confirmed,
+                "Deleted" => OrderStatus::Deleted,
+                _ => OrderStatus::Draft,
+            },
+        }
+    }
+}
+
+impl From<DbDangerousProduct> for DangerousProduct {
+    fn from(db: DbDangerousProduct) -> Self {
+        Self {
+            id: ID::from(db.id),
+            code: db.code,
+            description: db.description,
+            max_temperature: db.max_temperature,
+        }
+    }
+}
+
+impl From<DbExpiringProduct> for ExpiringProduct {
+    fn from(db: DbExpiringProduct) -> Self {
+        Self {
+            id: ID::from(db.id),
+            code: db.code,
+            description: db.description,
+            expiration_date: db.expiration_date,
+        }
+    }
+}
+
+impl From<DbProductKind> for ProductKind {
+    fn from(db: DbProductKind) -> Self {
+        match db {
+            DbProductKind::Product(p) => ProductKind::Product(Product::from(p)),
+            DbProductKind::Dangerous(p) => ProductKind::DangerousProduct(DangerousProduct::from(p)),
+            DbProductKind::Expiring(p) => ProductKind::ExpiringProduct(ExpiringProduct::from(p)),
         }
     }
 }

@@ -17,7 +17,7 @@ description = "Run clippy lints"
 command = "cargo"
 args = ["clippy", "--all-targets", "--", "-D", "warnings"]
 
-[tasks.00-monolith]
+[tasks.monolith]
 description = "Run the monolith server"
 command = "cargo"
 args = ["run", "--bin", "00-monolith"]
@@ -39,6 +39,11 @@ args = ["run", "--bin", "fso2f", "--", "solution"]
 
 # Local Federation
 
+[tasks.export-schemas]
+description = "Export GraphQL schemas to files"
+command = "cargo"
+args = ["run", "--bin", "export-schemas"]
+
 [tasks.wgc-build-router]
 description = "Build WunderGraph router configuration"
 command = "wgc"
@@ -50,11 +55,6 @@ args = [
     "-o",
     "./schemas/federation/router.json",
 ]
-
-[tasks.export-schemas]
-description = "Export GraphQL schemas to files"
-command = "cargo"
-args = ["run", "--bin", "export-schemas"]
 
 [tasks.local]
 description = "Run all subgraphs locally with local router"
@@ -221,8 +221,8 @@ echo "  cargo make test                                     - Run tests for curr
 echo "  cargo make solution                                 - Checkout solution branch"
 echo ""
 echo "Local Federation:"
-echo "  cargo make wgc-build-router                         - Build router configuration"
 echo "  cargo make export-schemas                           - Export GraphQL schemas"
+echo "  cargo make wgc-build-router                         - Build router configuration"
 echo "  cargo make local                                    - Run all subgraphs with local router"
 echo ""
 echo "Federation:"

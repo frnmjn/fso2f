@@ -7,7 +7,8 @@ use sqlx::{Pool, Postgres};
 
 use crate::db::products::{
     DbDangerousProduct, DbExpiringProduct, DbProduct, DbProductKind, get_dangerous_product_by_id,
-    get_expiring_product_by_id, get_product_by_id, insert_product, retrieve_product_by_id,
+    get_expiring_product_by_id, get_product_by_id, insert_product, retrieve_product_by_code,
+    retrieve_product_by_id,
 };
 
 #[derive(MergedObject, Default)]
@@ -18,28 +19,10 @@ pub struct ProductQuery;
 
 #[Object]
 impl ProductQuery {
-    async fn product(&self, code: String) -> ProductKind {
-        if code.starts_with("D") {
-            ProductKind::DangerousProduct(DangerousProduct {
-                id: ID::from(uuid::Uuid::new_v4().to_string()),
-                code,
-                description: "A dangerous product".to_string(),
-                max_temperature: 100.0,
-            })
-        } else if code.starts_with("E") {
-            ProductKind::ExpiringProduct(ExpiringProduct {
-                id: ID::from(uuid::Uuid::new_v4().to_string()),
-                code,
-                description: "An expiring product".to_string(),
-                expiration_date: Utc::now() + chrono::Duration::days(30),
-            })
-        } else {
-            ProductKind::Product(Product {
-                id: ID::from(uuid::Uuid::new_v4().to_string()),
-                code,
-                description: "A regular product".to_string(),
-            })
-        }
+    async fn product(&self, ctx: &Context<'_>, code: String) -> Result<Option<ProductKind>> {
+        let pool = ctx.data::<Pool<Postgres>>()?;
+        let product = retrieve_product_by_code(pool, &code).await?;
+        Ok(product.map(ProductKind::from))
     }
 
     #[graphql(entity)]
