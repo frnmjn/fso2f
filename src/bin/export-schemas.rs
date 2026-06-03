@@ -1,9 +1,9 @@
 use async_graphql::{EmptyMutation, EmptySubscription, SDLExportOptions, Schema};
 use fso2f::{
-    _01_simple_object, _02_complex_object, _03_merged_object, _04_real_graph, _05_modeling,
-    _06_union, _07_interface, _08_mutation, _09_one_of,
-    _10_federation::{orders, products},
-    _11_federated_subgraph::{
+    ex01_simple_object, ex02_complex_object, ex03_merged_object, ex04_real_graph, ex05_modeling,
+    ex06_union, ex07_interface, ex08_mutation, ex09_one_of,
+    ex10_federation::{orders, products},
+    ex11_federated_subgraph::{
         customers as fs_customers, fake_customers as fs_fake_customers, orders as fs_orders,
         products as fs_products,
     },
@@ -15,7 +15,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         (
             "schemas/01_simple_object.graphql",
             Schema::new(
-                _01_simple_object::schema::Query,
+                ex01_simple_object::schema::Query,
                 EmptyMutation,
                 EmptySubscription,
             )
@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         (
             "schemas/02_complex_object.graphql",
             Schema::new(
-                _02_complex_object::schema::Query,
+                ex02_complex_object::schema::Query,
                 EmptyMutation,
                 EmptySubscription,
             )
@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         (
             "schemas/03_merged_object.graphql",
             Schema::new(
-                _03_merged_object::schema::Query::default(),
+                ex03_merged_object::schema::Query::default(),
                 EmptyMutation,
                 EmptySubscription,
             )
@@ -42,7 +42,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         (
             "schemas/04_real_graph.graphql",
             Schema::new(
-                _04_real_graph::schema::Query::default(),
+                ex04_real_graph::schema::Query::default(),
                 EmptyMutation,
                 EmptySubscription,
             )
@@ -51,7 +51,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         (
             "schemas/05_modeling.graphql",
             Schema::new(
-                _05_modeling::schema::Query::default(),
+                ex05_modeling::schema::Query::default(),
                 EmptyMutation,
                 EmptySubscription,
             )
@@ -60,7 +60,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         (
             "schemas/06_union.graphql",
             Schema::new(
-                _06_union::schema::Query::default(),
+                ex06_union::schema::Query::default(),
                 EmptyMutation,
                 EmptySubscription,
             )
@@ -69,7 +69,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         (
             "schemas/07_interface.graphql",
             Schema::new(
-                _07_interface::schema::Query::default(),
+                ex07_interface::schema::Query::default(),
                 EmptyMutation,
                 EmptySubscription,
             )
@@ -78,8 +78,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         (
             "schemas/08_mutation.graphql",
             Schema::new(
-                _08_mutation::schema::Query::default(),
-                _08_mutation::schema::Mutation::default(),
+                ex08_mutation::schema::Query::default(),
+                ex08_mutation::schema::Mutation::default(),
                 EmptySubscription,
             )
             .sdl(),
@@ -87,8 +87,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         (
             "schemas/09_one_of.graphql",
             Schema::new(
-                _09_one_of::schema::Query::default(),
-                _09_one_of::schema::Mutation::default(),
+                ex09_one_of::schema::Query::default(),
+                ex09_one_of::schema::Mutation::default(),
                 EmptySubscription,
             )
             .sdl(),

@@ -1,28 +1,30 @@
 use async_graphql::{EmptyMutation, EmptySubscription, Request, Schema, Variables};
-use fso2f::_03_merged_object::schema::Query;
+use fso2f::ex04_real_graph::schema::Query;
 use serde_json::{Value, json};
 
 const QUERY: &str = r#"
-    query ($code: String!, $orderId: ID!) {
-        product(code: $code) {
-            id
-            code
-            description
-            salesCount
-        }
+    query ($orderId: ID!) {
         order(id: $orderId) {
             id
             totalAmount
+            lines {
+                product {
+                    id
+                    code
+                    description
+                    salesCount
+                }
+                quantity
+            }
         }
     }
 "#;
 
 #[tokio::test]
-async fn ex_3() {
+async fn ex_4() {
     let schema = Schema::new(Query::default(), EmptyMutation, EmptySubscription);
 
     let request = Request::new(QUERY).variables(Variables::from_json(json!({
-        "code": "WIDGET-001",
         "orderId": "aaaa1111-aa11-4aa1-8aa1-aaaaaaaaaaaa",
     })));
 
@@ -36,10 +38,20 @@ async fn ex_3() {
 
     let data: Value = response.data.into_json().unwrap();
 
-    let product = &data["product"];
+    let lines = &data["order"]["lines"];
+    assert!(lines.is_array());
+    assert_eq!(lines.as_array().unwrap().len(), 2);
+
+    let product = &lines[0]["product"];
     assert!(product["id"].is_string());
-    assert_eq!(product["code"], "WIDGET-001");
-    assert_eq!(product["description"], "A sample product");
+    assert_eq!(product["code"], "P001");
+    assert_eq!(product["description"], "Sample product 1");
+    assert_eq!(product["salesCount"], 42);
+
+    let product = &lines[1]["product"];
+    assert!(product["id"].is_string());
+    assert_eq!(product["code"], "P002");
+    assert_eq!(product["description"], "Sample product 2");
     assert_eq!(product["salesCount"], 42);
 
     let order = &data["order"];

@@ -1,5 +1,5 @@
 use async_graphql::{EmptyMutation, EmptySubscription, Request, Schema, Variables};
-use fso2f::_06_union::schema::Query;
+use fso2f::ex06_union::schema::Query;
 use serde_json::{Value, json};
 
 const QUERY: &str = r#"

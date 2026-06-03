@@ -63,7 +63,7 @@ interface ProductKind @key(fields: "id") {
 }
 
 type Query {
-	product(code: String!): ProductKind!
+	product(code: String!): ProductKind
 }
 
 """

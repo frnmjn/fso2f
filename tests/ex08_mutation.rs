@@ -1,5 +1,5 @@
 use async_graphql::{EmptySubscription, Request, Schema, Variables};
-use fso2f::_08_mutation::schema::{Mutation, Query};
+use fso2f::ex08_mutation::schema::{Mutation, Query};
 use fso2f::db::products::get_product_by_id;
 use serde_json::{Value, json};
 use sqlx::PgPool;

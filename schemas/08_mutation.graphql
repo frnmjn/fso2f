@@ -71,8 +71,8 @@ interface ProductKind {
 }
 
 type Query {
-	product(code: String!): ProductKind!
-	order(id: ID!): Order!
+	product(code: String!): ProductKind
+	order(id: ID!): Order
 }
 
 """
