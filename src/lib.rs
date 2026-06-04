@@ -1,6 +1,12 @@
-pub mod _01_simple_object;
-pub mod _02_complex_object;
-pub mod _03_merged_object;
-pub mod _04_list;
+pub mod ex01_simple_object;
+pub mod ex02_complex_object;
+pub mod ex03_merged_object;
+pub mod ex04_real_graph;
+pub mod ex05_modeling;
+pub mod ex06_union;
+pub mod ex07_interface;
+pub mod ex08_mutation;
+pub mod ex09_one_of;
+pub mod ex10_federation;
+pub mod ex11_federated_subgraph;
 pub mod db;
-pub mod schema;

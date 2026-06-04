@@ -3,8 +3,8 @@ subgraphs:
   - name: subgraph-products
     routing_url: http://products-subgraph:3001/graphql
     schema:
-      file: ../products.graphql
+      file: ../10_products.graphql
   - name: subgraph-orders
     routing_url: http://orders-subgraph:3002/graphql
     schema:
-      file: ../orders.graphql
+      file: ../10_orders.graphql

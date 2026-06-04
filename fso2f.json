@@ -3,73 +3,91 @@
     {
       "name": "01",
       "instructions": "Write the first GraphQL query for a Product on POST /graphql",
-      "test": "_01_simple_object",
+      "test": "ex01_simple_object",
       "solution": ""
     },
     {
       "name": "02",
       "instructions": "Add a computed property to the Product type",
-      "test": "_02_complex_object",
+      "test": "ex02_complex_object",
       "solution": ""
     },
     {
       "name": "03",
       "instructions": "Introduce querying Orders with MergedObject",
-      "test": "_03_merged_object",
+      "test": "ex03_merged_object",
       "solution": ""
     },
     {
       "name": "04",
-      "instructions": "Add a nested Vec<OrderLine> in Order",
-      "test": "_04_list",
+      "instructions": "Let's make a real graph!",
+      "test": "ex04_real_graph",
       "solution": ""
     },
     {
-      "name": "",
-      "instructions": "Include an optional discount field in each OrderLine",
-      "test": "optional",
+      "name": "05",
+      "instructions": "improve domain modeling",
+      "test": "ex05_modeling",
       "solution": ""
     },
     {
-      "name": "",
-      "instructions": "Add a status enumeration for the Order",
-      "test": "enum",
+      "name": "06",
+      "instructions": "union",
+      "test": "ex06_union",
       "solution": ""
     },
     {
-      "name": "",
-      "instructions": "Order to include a Customer field",
-      "test": "struct",
+      "name": "07",
+      "instructions": "interface",
+      "test": "ex07_interface",
       "solution": ""
     },
     {
-      "name": "",
-      "instructions": "Make Product a union interface, exposing some shared fields and some fragments",
-      "test": "union_interface",
-      "solution": ""
-    },
-    {
-      "name": "",
+      "name": "08",
       "instructions": "Implement a mutation to register a new Order, defining the necessary InputObjects",
-      "test": "mutation",
+      "test": "ex08_mutation",
       "solution": ""
     },
     {
-      "name": "",
+      "name": "09",
       "instructions": "Implement a mutation to register a new Product, defining the necessary OneOfObject as input",
-      "test": "one_of",
+      "test": "ex09_one_of",
       "solution": ""
     },
     {
-      "name": "",
-      "instructions": "Split the monolith in two services, exposing a federated schema",
-      "test": "federated_schema",
+      "name": "10",
+      "instructions": "Split the monolith in two services, exposing a federated schema with new fields",
+      "test": "ex10_federation",
       "solution": ""
     },
     {
-      "name": "",
+      "name": "11",
       "instructions": "Introduce extra fields in the Customer, coming from a feature flagged subschema",
-      "test": "federated_subgraph",
+      "test": "ex11_federated_subgraph",
+      "solution": ""
+    },
+    {
+      "name": "12",
+      "instructions": "subscription",
+      "test": "ex12_subscription",
+      "solution": ""
+    },
+    {
+      "name": "13",
+      "instructions": "dataloader",
+      "test": "ex13_dataloader",
+      "solution": ""
+    },
+    {
+      "name": "14",
+      "instructions": "pagination",
+      "test": "ex14_pagination",
+      "solution": ""
+    },
+    {
+      "name": "15",
+      "instructions": "cynic",
+      "test": "ex15_cynic",
       "solution": ""
     }
   ]

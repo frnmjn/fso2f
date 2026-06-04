@@ -17,7 +17,7 @@ description = "Run clippy lints"
 command = "cargo"
 args = ["clippy", "--all-targets", "--", "-D", "warnings"]
 
-[tasks.00-monolith]
+[tasks.monolith]
 description = "Run the monolith server"
 command = "cargo"
 args = ["run", "--bin", "00-monolith"]
@@ -39,8 +39,13 @@ args = ["run", "--bin", "fso2f", "--", "solution"]
 
 # Local Federation
 
+[tasks.export-schemas]
+description = "Export GraphQL schemas to files"
+command = "cargo"
+args = ["run", "--bin", "export-schemas"]
+
 [tasks.wgc-build-router]
-description = "Build WonderGraph router configuration"
+description = "Build WunderGraph router configuration"
 command = "wgc"
 args = [
     "router",
@@ -50,18 +55,6 @@ args = [
     "-o",
     "./schemas/federation/router.json",
 ]
-
-[tasks.export-schemas]
-description = "Export GraphQL schemas to files"
-command = "cargo"
-args = ["run", "--bin", "export-schemas"]
-
-[tasks.export-federated-schema]
-description = "Export federated schema to GraphQL SDL"
-script = '''
-jq -r '.engineConfig.graphqlSchema' schemas/federation/router.json > schemas/federation/federated-schema.graphql
-echo "✅ Federated schema exported to schemas/federation/federated-schema.graphql"
-'''
 
 [tasks.local]
 description = "Run all subgraphs locally with local router"
@@ -118,7 +111,7 @@ args = [
     "--routing-url",
     "http://products-subgraph:3001/graphql",
     "--schema",
-    "schemas/products.graphql",
+    "schemas/11_products.graphql",
     "-n",
     "development",
 ]
@@ -133,7 +126,7 @@ args = [
     "--routing-url",
     "http://orders-subgraph:3002/graphql",
     "--schema",
-    "schemas/orders.graphql",
+    "schemas/11_orders.graphql",
     "-n",
     "development",
 ]
@@ -155,7 +148,7 @@ args = [
     "--routing-url",
     "http://not-existing-url/graphql",
     "--schema",
-    "schemas/fake_customers.graphql",
+    "schemas/11_fake_customers.graphql",
     "-n",
     "development",
 ]
@@ -170,7 +163,7 @@ args = [
     "--routing-url",
     "http://customers-subgraph:3003/graphql",
     "--schema",
-    "schemas/customers.graphql",
+    "schemas/11_customers.graphql",
     "--subgraph",
     "customers",
     "-n",
@@ -197,7 +190,7 @@ args = ["feature-flag", "enable", "flag-customers", "-n", "development"]
 description = "Promote customers subgraph to base"
 script = '''
 wgc subgraph update customers --routing-url http://customers-subgraph:3003/graphql -n development
-wgc subgraph publish customers --schema schemas/customers.graphql -n development
+wgc subgraph publish customers --schema schemas/11_customers.graphql -n development
 wgc subgraph delete strangler-customers -n development
 '''
 
@@ -228,9 +221,8 @@ echo "  cargo make test                                     - Run tests for curr
 echo "  cargo make solution                                 - Checkout solution branch"
 echo ""
 echo "Local Federation:"
-echo "  cargo make wgc-build-router                         - Build router configuration"
 echo "  cargo make export-schemas                           - Export GraphQL schemas"
-echo "  cargo make export-federated-schema                  - Export federated schema"
+echo "  cargo make wgc-build-router                         - Build router configuration"
 echo "  cargo make local                                    - Run all subgraphs with local router"
 echo ""
 echo "Federation:"

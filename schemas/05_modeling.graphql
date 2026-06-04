@@ -1,0 +1,52 @@
+type Customer {
+	id: ID!
+	name: String!
+	vat: String!
+}
+
+scalar Money
+
+type Order {
+	id: ID!
+	customer: Customer!
+	totalAmount: Money!
+	status: OrderStatus!
+	lines: [OrderLine!]!
+}
+
+type OrderLine {
+	product: Product!
+	quantity: Int!
+	price: Money!
+	discount: Money
+}
+
+enum OrderStatus {
+	DRAFT
+	CONFIRMED
+	Cancelled
+}
+
+type Product {
+	id: ID!
+	code: String!
+	description: String!
+	salesCount: Int!
+}
+
+type Query {
+	product(code: String!): Product!
+	order(id: ID!): Order!
+}
+
+"""
+Directs the executor to include this field or fragment only when the `if` argument is true.
+"""
+directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+"""
+Directs the executor to skip this field or fragment when the `if` argument is true.
+"""
+directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+schema {
+	query: Query
+}
