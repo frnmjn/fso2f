@@ -1,12 +1,12 @@
-use async_graphql::{EmptySubscription, Schema, http::GraphiQLSource};
-use async_graphql_axum::{GraphQL, GraphQLSubscription};
+use async_graphql::{EmptyMutation, EmptySubscription, Schema, http::GraphiQLSource};
+use async_graphql_axum::GraphQL;
 use axum::{
     Router,
     response::{Html, IntoResponse},
     routing::get,
 };
 
-use fso2f::ex11_federated_subgraph::products::{Mutation, Query};
+use fso2f::ex10_federated_subgraph::customers::Query;
 use sqlx::{Error, postgres::PgPoolOptions};
 
 #[tokio::main]
@@ -20,7 +20,7 @@ async fn main() -> Result<(), Error> {
         .connect(&database_url)
         .await?;
 
-    let schema = Schema::build(Query::default(), Mutation::default(), EmptySubscription)
+    let schema = Schema::build(Query::default(), EmptyMutation, EmptySubscription)
         .data(pool.clone())
         .finish();
 
@@ -30,12 +30,11 @@ async fn main() -> Result<(), Error> {
             "/graphql",
             get(graphiql).post_service(GraphQL::new(schema.clone())),
         )
-        .route_service("/ws", GraphQLSubscription::new(schema.clone()))
         .with_state(pool.clone());
 
-    tracing::info!("🚀 Products subgraph running at http://0.0.0.0:3001/graphql");
+    tracing::info!("🚀 Customers subgraph running at http://0.0.0.0:3003/graphql");
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3001").await.unwrap();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3003").await.unwrap();
     axum::serve(listener, app).await.unwrap();
     Ok(())
 }

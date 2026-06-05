@@ -2,92 +2,86 @@
   "exercises": [
     {
       "name": "01",
-      "instructions": "Write the first GraphQL query for a Product on POST /graphql",
+      "instructions": "Create a Query that returns a product. Make the test ex01 pass! Use #[SimpleObject].\n📚 https://async-graphql.github.io/async-graphql/en/define_simple_object.html",
       "test": "ex01_simple_object",
       "solution": ""
     },
     {
       "name": "02",
-      "instructions": "Add a computed property to the Product type",
+      "instructions": "Add another Simple object (Order) and a custom resolver for OrderLine. Use #[ComplexObject].\n📚 https://async-graphql.github.io/async-graphql/en/define_simple_object.html#user-defined-resolvers",
       "test": "ex02_complex_object",
       "solution": ""
     },
     {
       "name": "03",
-      "instructions": "Introduce querying Orders with MergedObject",
+      "instructions": "Expose both product and order queries using #[MergedObject].\n📚 https://async-graphql.github.io/async-graphql/en/merging_objects.html",
       "test": "ex03_merged_object",
       "solution": ""
     },
     {
       "name": "04",
-      "instructions": "Let's make a real graph!",
-      "test": "ex04_real_graph",
+      "instructions": "Enrich the domain model: Order gains status (Enum), customer (SimpleObject with id/name/vat), and lines with price/discount as Money scalar (amount + currency).\n📚 https://async-graphql.github.io/async-graphql/en/define_enum.html\n📚 https://async-graphql.github.io/async-graphql/en/custom_scalars.html",
+      "test": "ex04_modeling",
       "solution": ""
     },
     {
       "name": "05",
-      "instructions": "improve domain modeling",
-      "test": "ex05_modeling",
+      "instructions": "Change `product` to return a Union of Product, DangerousProduct (with maxTemperature), and ExpiringProduct (with expirationDate). Use inline fragments to query.\n📚 https://async-graphql.github.io/async-graphql/en/define_union.html",
+      "test": "ex05_union",
       "solution": ""
     },
     {
       "name": "06",
-      "instructions": "union",
-      "test": "ex06_union",
+      "instructions": "Replace the Union with an Interface: all product variants share id, code, description as interface fields. Specific fields are accessed via inline fragments.\n📚 https://async-graphql.github.io/async-graphql/en/define_interface.html",
+      "test": "ex06_interface",
       "solution": ""
     },
     {
       "name": "07",
-      "instructions": "interface",
-      "test": "ex07_interface",
+      "instructions": "Add a `createProduct(product: CreateProduct!)` mutation using #[InputObject]. Persist the product to the database and return the created Product. Requires DB pool in context.\n📚 https://async-graphql.github.io/async-graphql/en/define_input_object.html",
+      "test": "ex07_mutation",
       "solution": ""
     },
     {
       "name": "08",
-      "instructions": "Implement a mutation to register a new Order, defining the necessary InputObjects",
-      "test": "ex08_mutation",
+      "instructions": "Change the mutation input to a #[OneofObject] (CreateProductKind) accepting one of: product, dangerousProduct, or expiringProduct. Return the created product as the Interface. Persist to DB.\n📚 https://async-graphql.github.io/async-graphql/en/define_one_of_object.html",
+      "test": "ex08_one_of",
       "solution": ""
     },
     {
       "name": "09",
-      "instructions": "Implement a mutation to register a new Product, defining the necessary OneOfObject as input",
-      "test": "ex09_one_of",
+      "instructions": "Split into two federated subgraphs: products (port 3001) and orders (port 3002). Orders references ProductKind via @interfaceObject. Use `cargo make local` to run with the router on port 5000.\n📚 https://async-graphql.github.io/async-graphql/en/apollo_federation.html",
+      "test": "ex09_federation",
       "solution": ""
     },
     {
       "name": "10",
-      "instructions": "Split the monolith in two services, exposing a federated schema with new fields",
-      "test": "ex10_federation",
+      "instructions": "Add a customers subgraph (port 3003) behind a feature flag that overrides the customer name from the orders subgraph using @override. Use `cargo make control-plane` with WunderGraph cloud.\n📚 https://async-graphql.github.io/async-graphql/en/apollo_federation.html",
+      "test": "ex10_federated_subgraph",
       "solution": ""
     },
     {
       "name": "11",
-      "instructions": "Introduce extra fields in the Customer, coming from a feature flagged subschema",
-      "test": "ex11_federated_subgraph",
+      "instructions": "subscription",
+      "test": "ex11_subscription",
       "solution": ""
     },
     {
       "name": "12",
-      "instructions": "subscription",
-      "test": "ex12_subscription",
+      "instructions": "dataloader",
+      "test": "ex12_dataloader",
       "solution": ""
     },
     {
       "name": "13",
-      "instructions": "dataloader",
-      "test": "ex13_dataloader",
+      "instructions": "pagination",
+      "test": "ex13_pagination",
       "solution": ""
     },
     {
       "name": "14",
-      "instructions": "pagination",
-      "test": "ex14_pagination",
-      "solution": ""
-    },
-    {
-      "name": "15",
       "instructions": "cynic",
-      "test": "ex15_cynic",
+      "test": "ex14_cynic",
       "solution": ""
     }
   ]

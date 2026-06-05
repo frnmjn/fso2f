@@ -32,9 +32,8 @@ fn main() {
     }
 }
 
-fn task(verbose: bool) {
+fn task(_verbose: bool) {
     let exercise_name = load_exercise();
-    checkout_branch(&exercise_name, verbose);
 
     let exercises = load_exercises();
     match exercises.iter().find(|e| e.name == exercise_name) {
@@ -44,6 +43,10 @@ fn task(verbose: bool) {
             exercise_name
         ),
     }
+}
+
+fn show_current_task() {
+    task(false);
 }
 
 fn load_exercise() -> String {
@@ -121,10 +124,8 @@ fn test(_verbose: bool) {
                 if answer.is_empty() || answer == "y" || answer == "yes" {
                     fs::write(PROGRESS_FILE, &next.name)
                         .expect("❌ Failed to update progress file");
-                    println!(
-                        "\n📝 Moved to exercise '{}'. Run `fso2f task` to see instructions.\n",
-                        next.name
-                    );
+                    println!();
+                    show_current_task();
                 }
             } else {
                 println!("\n🎉 You completed all exercises!");

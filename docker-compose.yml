@@ -34,7 +34,7 @@ services:
     container_name: products-subgraph
     build: .
     working_dir: /app
-    command: cargo run --bin 10_products
+    command: cargo run --bin 09_products
     ports:
       - "3001:3001"
     environment:
@@ -54,7 +54,7 @@ services:
     container_name: orders-subgraph
     build: .
     working_dir: /app
-    command: cargo run --bin 10_orders
+    command: cargo run --bin 09_orders
     ports:
       - "3002:3002"
     environment:
@@ -87,7 +87,7 @@ services:
     container_name: customers-subgraph
     build: .  
     working_dir: /app
-    command: cargo run --bin 11_customers
+    command: cargo run --bin 10_customers
     ports:
       - "3003:3003"
     environment:
@@ -107,7 +107,7 @@ services:
     container_name: products-subgraph
     build: .
     working_dir: /app
-    command: cargo run --bin 11_products
+    command: cargo run --bin 10_products
     ports:
       - "3001:3001"
     environment:
@@ -127,7 +127,7 @@ services:
     container_name: orders-subgraph
     build: .
     working_dir: /app
-    command: cargo run --bin 11_orders
+    command: cargo run --bin 10_orders
     ports:
       - "3002:3002"
     environment:

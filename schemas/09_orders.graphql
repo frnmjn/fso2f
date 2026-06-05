@@ -1,4 +1,4 @@
-type Customer @key(fields: "id") {
+type Customer {
 	id: ID!
 	name: String!
 	vat: String!

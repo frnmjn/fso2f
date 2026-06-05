@@ -6,15 +6,13 @@ use axum::{
     routing::get,
 };
 
-use fso2f::ex10_federation::products::{Mutation, Query};
+use fso2f::ex10_federated_subgraph::products::{Mutation, Query};
 use sqlx::{Error, postgres::PgPoolOptions};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    // initialize tracing
     tracing_subscriber::fmt::init();
 
-    // create a db connection pool
     let database_url = std::env::var("DATABASE_URL")
         .unwrap_or_else(|_| "postgres://fso2f:fso2f@localhost/fso2f".to_string());
     let pool = PgPoolOptions::new()
@@ -26,7 +24,6 @@ async fn main() -> Result<(), Error> {
         .data(pool.clone())
         .finish();
 
-    // build our application with a route
     let app = Router::new()
         .route("/", get(|| async { "ok" }))
         .route(
@@ -38,7 +35,6 @@ async fn main() -> Result<(), Error> {
 
     tracing::info!("🚀 Products subgraph running at http://0.0.0.0:3001/graphql");
 
-    // run our app with hyper, listening globally on port 3001
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3001").await.unwrap();
     axum::serve(listener, app).await.unwrap();
     Ok(())

@@ -3,12 +3,18 @@ use fso2f::ex02_complex_object::schema::Query;
 use serde_json::{Value, json};
 
 const QUERY: &str = r#"
-    query ($code: String!) {
-        product (code: $code) {
+    query ($orderId: ID!) {
+        order(id: $orderId) {
             id
-            code
-            description
-            salesCount
+            totalAmount
+            lines {
+                product {
+                    id
+                    code
+                    description
+                }
+                quantity
+            }
         }
     }
 "#;
@@ -18,7 +24,7 @@ async fn ex_2() {
     let schema = Schema::new(Query, EmptyMutation, EmptySubscription);
 
     let request = Request::new(QUERY).variables(Variables::from_json(json!({
-        "code": "WIDGET-001",
+        "orderId": "aaaa1111-aa11-4aa1-8aa1-aaaaaaaaaaaa",
     })));
 
     let response = schema.execute(request).await;
@@ -30,9 +36,22 @@ async fn ex_2() {
     );
 
     let data: Value = response.data.into_json().unwrap();
-    let product = &data["product"];
+
+    let lines = &data["order"]["lines"];
+    assert!(lines.is_array());
+    assert_eq!(lines.as_array().unwrap().len(), 2);
+
+    let product = &lines[0]["product"];
     assert!(product["id"].is_string());
-    assert_eq!(product["code"], "WIDGET-001");
-    assert_eq!(product["description"], "A sample product");
-    assert_eq!(product["salesCount"], 42);
+    assert_eq!(product["code"], "P001");
+    assert_eq!(product["description"], "Sample product 1");
+
+    let product = &lines[1]["product"];
+    assert!(product["id"].is_string());
+    assert_eq!(product["code"], "P002");
+    assert_eq!(product["description"], "Sample product 2");
+
+    let order = &data["order"];
+    assert_eq!(order["id"], "aaaa1111-aa11-4aa1-8aa1-aaaaaaaaaaaa");
+    assert_eq!(order["totalAmount"], 99.99);
 }
