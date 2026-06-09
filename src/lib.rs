@@ -1,4 +1,5 @@
 pub mod db;
+pub mod ex00_init;
 pub mod ex01_simple_object;
 pub mod ex02_complex_object;
 pub mod ex03_merged_object;

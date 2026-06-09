@@ -22,6 +22,11 @@ description = "Run the monolith server"
 command = "cargo"
 args = ["run", "--bin", "00-monolith"]
 
+[tasks.01]
+description = "Run the 01-simple_object server"
+command = "cargo"
+args = ["run", "--bin", "01-simple_object"]
+
 [tasks.task]
 description = "Run fso2f task"
 command = "cargo"
@@ -36,6 +41,11 @@ args = ["run", "--bin", "fso2f", "--", "test"]
 description = "Checkout solution branch for current exercise"
 command = "cargo"
 args = ["run", "--bin", "fso2f", "--", "solution"]
+
+[tasks.demo]
+description = "Run fso2f demo"
+command = "cargo"
+args = ["run", "--bin", "fso2f", "--", "demo"]
 
 # Local Federation
 
@@ -215,10 +225,13 @@ echo "Available tasks:"
 echo "Development:"
 echo "  cargo make install                                  - Install wgc"
 echo "  cargo make clippy                                   - Run lints"
+echo "Workshop Runner:"
 echo "  cargo make monolith                                 - Run the monolith server"
+echo "  cargo make 01                                       - Run the 01-simple_object server"
 echo "  cargo make task                                     - Show current exercise instructions"
 echo "  cargo make test                                     - Run tests for current exercise"
 echo "  cargo make solution                                 - Checkout solution branch"
+echo "  cargo make demo                                     - Show task and optionally move to next"
 echo ""
 echo "Local Federation:"
 echo "  cargo make export-schemas                           - Export GraphQL schemas"

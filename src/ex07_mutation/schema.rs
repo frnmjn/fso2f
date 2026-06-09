@@ -6,10 +6,10 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Postgres};
 
-use crate::db::orders::{DbOrder, get_order_by_id, get_order_lines_by_order_id};
+use crate::db::orders::{DbOrder, DbOrderLine, get_order_by_id, get_order_lines_by_order_id};
 use crate::db::products::{
-    DbDangerousProduct, DbExpiringProduct, DbProduct, DbProductKind, get_product_by_id,
-    insert_standard_product, retrieve_product_by_code,
+    DbDangerousProduct, DbExpiringProduct, DbProduct, DbProductKind, insert_standard_product,
+    retrieve_product_by_code, retrieve_product_by_id,
 };
 
 #[derive(MergedObject, Default)]
@@ -28,17 +28,19 @@ impl ProductQuery {
 }
 
 #[derive(SimpleObject)]
-#[graphql(complex)]
 pub struct Product {
     id: ID,
     code: String,
     description: String,
 }
 
-#[ComplexObject]
-impl Product {
-    async fn sales_count(&self) -> Result<i32> {
-        Ok(42)
+impl From<DbProduct> for Product {
+    fn from(db: DbProduct) -> Self {
+        Self {
+            id: ID::from(db.id),
+            code: db.code,
+            description: db.description,
+        }
     }
 }
 
@@ -50,12 +52,34 @@ pub struct DangerousProduct {
     pub max_temperature: f64,
 }
 
+impl From<DbDangerousProduct> for DangerousProduct {
+    fn from(db: DbDangerousProduct) -> Self {
+        Self {
+            id: ID::from(db.id),
+            code: db.code,
+            description: db.description,
+            max_temperature: db.max_temperature,
+        }
+    }
+}
+
 #[derive(SimpleObject)]
 pub struct ExpiringProduct {
     pub id: ID,
     pub code: String,
     pub description: String,
     pub expiration_date: DateTime<Utc>,
+}
+
+impl From<DbExpiringProduct> for ExpiringProduct {
+    fn from(db: DbExpiringProduct) -> Self {
+        Self {
+            id: ID::from(db.id),
+            code: db.code,
+            description: db.description,
+            expiration_date: db.expiration_date,
+        }
+    }
 }
 
 #[derive(Interface)]
@@ -68,6 +92,16 @@ pub enum ProductKind {
     Product(Product),
     DangerousProduct(DangerousProduct),
     ExpiringProduct(ExpiringProduct),
+}
+
+impl From<DbProductKind> for ProductKind {
+    fn from(db: DbProductKind) -> Self {
+        match db {
+            DbProductKind::Product(p) => ProductKind::Product(Product::from(p)),
+            DbProductKind::Dangerous(p) => ProductKind::DangerousProduct(DangerousProduct::from(p)),
+            DbProductKind::Expiring(p) => ProductKind::ExpiringProduct(ExpiringProduct::from(p)),
+        }
+    }
 }
 
 #[derive(Default)]
@@ -91,6 +125,28 @@ struct Order {
     status: OrderStatus,
 }
 
+impl From<DbOrder> for Order {
+    fn from(db: DbOrder) -> Self {
+        Self {
+            id: ID::from(db.id),
+            customer: Customer {
+                id: ID::from(db.customer_id),
+                name: db.customer_name,
+                vat: db.customer_vat,
+            },
+            total_amount: Money {
+                amount: db.total_amount,
+                currency: Currency::EUR,
+            },
+            status: match db.status.as_str() {
+                "Confirmed" => OrderStatus::Confirmed,
+                "Deleted" => OrderStatus::Deleted,
+                _ => OrderStatus::Draft,
+            },
+        }
+    }
+}
+
 #[derive(SimpleObject)]
 pub struct Customer {
     pub id: ID,
@@ -111,45 +167,57 @@ impl Order {
     async fn lines(&self, ctx: &Context<'_>) -> Result<Vec<OrderLine>> {
         let pool = ctx.data::<Pool<Postgres>>()?;
         let db_lines = get_order_lines_by_order_id(pool, self.id.as_str()).await?;
-        let mut lines = Vec::new();
-        for line in db_lines {
-            let product = get_product_by_id(pool, &line.product_id)
-                .await?
-                .map(Product::from)
-                .unwrap_or(Product {
-                    id: ID::from(line.product_id),
-                    code: "UNKNOWN".to_string(),
-                    description: "Unknown product".to_string(),
-                });
-            lines.push(OrderLine {
-                product,
-                quantity: line.quantity,
-                price: Money {
-                    amount: line.price,
-                    currency: Currency::EUR,
-                },
-                discount: line.discount.map(|d| Money {
-                    amount: d,
-                    currency: Currency::EUR,
-                }),
-            });
-        }
-        Ok(lines)
+        Ok(db_lines.into_iter().map(OrderLine::from).collect())
     }
 }
 
 #[derive(SimpleObject)]
+#[graphql(complex)]
 pub struct OrderLine {
-    pub product: Product,
+    pub id: ID,
+    #[graphql(skip)]
+    pub product_id: String,
     pub quantity: i32,
     pub price: Money,
     pub discount: Option<Money>,
+}
+
+impl From<DbOrderLine> for OrderLine {
+    fn from(l: DbOrderLine) -> Self {
+        Self {
+            id: ID::from(l.id),
+            product_id: l.product_id,
+            quantity: l.quantity,
+            price: l.price.into(),
+            discount: l.discount.map(|d| d.into()),
+        }
+    }
+}
+
+#[ComplexObject]
+impl OrderLine {
+    async fn product(&self, ctx: &Context<'_>) -> Result<ProductKind> {
+        let pool = ctx.data::<Pool<Postgres>>()?;
+        let db_product = retrieve_product_by_id(pool, &self.product_id).await?;
+        db_product
+            .map(ProductKind::from)
+            .ok_or_else(|| "Product not found".into())
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Money {
     pub amount: f64,
     pub currency: Currency,
+}
+
+impl From<f64> for Money {
+    fn from(amount: f64) -> Self {
+        Self {
+            amount,
+            currency: Currency::EUR,
+        }
+    }
 }
 
 async_graphql::scalar!(Money);
@@ -194,68 +262,4 @@ impl ProductMutation {
 pub struct CreateProduct {
     pub code: String,
     pub description: String,
-}
-
-impl From<DbProduct> for Product {
-    fn from(db: DbProduct) -> Self {
-        Self {
-            id: ID::from(db.id),
-            code: db.code,
-            description: db.description,
-        }
-    }
-}
-
-impl From<DbOrder> for Order {
-    fn from(db: DbOrder) -> Self {
-        Self {
-            id: ID::from(db.id),
-            customer: Customer {
-                id: ID::from(db.customer_id),
-                name: db.customer_name,
-                vat: db.customer_vat,
-            },
-            total_amount: Money {
-                amount: db.total_amount,
-                currency: Currency::EUR,
-            },
-            status: match db.status.as_str() {
-                "Confirmed" => OrderStatus::Confirmed,
-                "Deleted" => OrderStatus::Deleted,
-                _ => OrderStatus::Draft,
-            },
-        }
-    }
-}
-
-impl From<DbDangerousProduct> for DangerousProduct {
-    fn from(db: DbDangerousProduct) -> Self {
-        Self {
-            id: ID::from(db.id),
-            code: db.code,
-            description: db.description,
-            max_temperature: db.max_temperature,
-        }
-    }
-}
-
-impl From<DbExpiringProduct> for ExpiringProduct {
-    fn from(db: DbExpiringProduct) -> Self {
-        Self {
-            id: ID::from(db.id),
-            code: db.code,
-            description: db.description,
-            expiration_date: db.expiration_date,
-        }
-    }
-}
-
-impl From<DbProductKind> for ProductKind {
-    fn from(db: DbProductKind) -> Self {
-        match db {
-            DbProductKind::Product(p) => ProductKind::Product(Product::from(p)),
-            DbProductKind::Dangerous(p) => ProductKind::DangerousProduct(DangerousProduct::from(p)),
-            DbProductKind::Expiring(p) => ProductKind::ExpiringProduct(ExpiringProduct::from(p)),
-        }
-    }
 }

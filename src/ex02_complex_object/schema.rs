@@ -35,6 +35,7 @@ struct Order {
 
 #[derive(SimpleObject)]
 pub struct OrderLine {
+    pub id: ID,
     pub product: Product,
     pub quantity: i32,
 }
@@ -44,6 +45,7 @@ impl Order {
     async fn lines(&self) -> Vec<OrderLine> {
         vec![
             OrderLine {
+                id: ID::from(uuid::Uuid::new_v4().to_string()),
                 product: Product {
                     id: ID::from(uuid::Uuid::new_v4().to_string()),
                     code: "P001".to_string(),
@@ -52,6 +54,7 @@ impl Order {
                 quantity: 2,
             },
             OrderLine {
+                id: ID::from(uuid::Uuid::new_v4().to_string()),
                 product: Product {
                     id: ID::from(uuid::Uuid::new_v4().to_string()),
                     code: "P002".to_string(),

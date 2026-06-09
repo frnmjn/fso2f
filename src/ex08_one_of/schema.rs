@@ -6,10 +6,10 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Postgres};
 
-use crate::db::orders::{DbOrder, get_order_by_id, get_order_lines_by_order_id};
+use crate::db::orders::{DbOrder, DbOrderLine, get_order_by_id, get_order_lines_by_order_id};
 use crate::db::products::{
-    DbDangerousProduct, DbExpiringProduct, DbProduct, DbProductKind, get_product_by_id,
-    insert_product, retrieve_product_by_code,
+    DbDangerousProduct, DbExpiringProduct, DbProduct, DbProductKind, insert_product,
+    retrieve_product_by_code, retrieve_product_by_id,
 };
 
 #[derive(MergedObject, Default)]
@@ -28,7 +28,6 @@ impl ProductQuery {
 }
 
 #[derive(SimpleObject)]
-#[graphql(complex)]
 pub struct Product {
     id: ID,
     code: String,
@@ -42,13 +41,6 @@ impl From<DbProduct> for Product {
             code: db.code,
             description: db.description,
         }
-    }
-}
-
-#[ComplexObject]
-impl Product {
-    async fn sales_count(&self) -> Result<i32> {
-        Ok(42)
     }
 }
 
@@ -133,6 +125,28 @@ struct Order {
     status: OrderStatus,
 }
 
+impl From<DbOrder> for Order {
+    fn from(db: DbOrder) -> Self {
+        Self {
+            id: ID::from(db.id),
+            customer: Customer {
+                id: ID::from(db.customer_id),
+                name: db.customer_name,
+                vat: db.customer_vat,
+            },
+            total_amount: Money {
+                amount: db.total_amount,
+                currency: Currency::EUR,
+            },
+            status: match db.status.as_str() {
+                "Confirmed" => OrderStatus::Confirmed,
+                "Deleted" => OrderStatus::Deleted,
+                _ => OrderStatus::Draft,
+            },
+        }
+    }
+}
+
 #[derive(SimpleObject)]
 pub struct Customer {
     pub id: ID,
@@ -153,45 +167,57 @@ impl Order {
     async fn lines(&self, ctx: &Context<'_>) -> Result<Vec<OrderLine>> {
         let pool = ctx.data::<Pool<Postgres>>()?;
         let db_lines = get_order_lines_by_order_id(pool, self.id.as_str()).await?;
-        let mut lines = Vec::new();
-        for line in db_lines {
-            let product = get_product_by_id(pool, &line.product_id)
-                .await?
-                .map(Product::from)
-                .unwrap_or(Product {
-                    id: ID::from(line.product_id),
-                    code: "UNKNOWN".to_string(),
-                    description: "Unknown product".to_string(),
-                });
-            lines.push(OrderLine {
-                product,
-                quantity: line.quantity,
-                price: Money {
-                    amount: line.price,
-                    currency: Currency::EUR,
-                },
-                discount: line.discount.map(|d| Money {
-                    amount: d,
-                    currency: Currency::EUR,
-                }),
-            });
-        }
-        Ok(lines)
+        Ok(db_lines.into_iter().map(OrderLine::from).collect())
     }
 }
 
 #[derive(SimpleObject)]
+#[graphql(complex)]
 pub struct OrderLine {
-    pub product: Product,
+    pub id: ID,
+    #[graphql(skip)]
+    pub product_id: String,
     pub quantity: i32,
     pub price: Money,
     pub discount: Option<Money>,
+}
+
+impl From<DbOrderLine> for OrderLine {
+    fn from(l: DbOrderLine) -> Self {
+        Self {
+            id: ID::from(l.id),
+            product_id: l.product_id,
+            quantity: l.quantity,
+            price: l.price.into(),
+            discount: l.discount.map(|d| d.into()),
+        }
+    }
+}
+
+#[ComplexObject]
+impl OrderLine {
+    async fn product(&self, ctx: &Context<'_>) -> Result<ProductKind> {
+        let pool = ctx.data::<Pool<Postgres>>()?;
+        let db_product = retrieve_product_by_id(pool, &self.product_id).await?;
+        db_product
+            .map(ProductKind::from)
+            .ok_or_else(|| "Product not found".into())
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Money {
     pub amount: f64,
     pub currency: Currency,
+}
+
+impl From<f64> for Money {
+    fn from(amount: f64) -> Self {
+        Self {
+            amount,
+            currency: Currency::EUR,
+        }
+    }
 }
 
 async_graphql::scalar!(Money);
@@ -219,7 +245,8 @@ impl ProductMutation {
         let pool = ctx.data::<Pool<Postgres>>()?;
 
         let id = uuid::Uuid::new_v4().to_string();
-        let persisted = insert_product(pool, product.into_write_model(id)).await?;
+        let db_product = product.into_write_model(id);
+        let persisted = insert_product(pool, db_product).await?;
         Ok(persisted.into())
     }
 }
@@ -247,7 +274,6 @@ impl CreateProductKind {
 
 #[derive(InputObject)]
 pub struct CreateProduct {
-    pub kind: String,
     pub code: String,
     pub description: String,
 }
@@ -264,7 +290,6 @@ impl CreateProduct {
 
 #[derive(InputObject)]
 pub struct CreateDangerousProduct {
-    pub kind: String,
     pub code: String,
     pub description: String,
     pub max_temperature: f64,
@@ -283,7 +308,6 @@ impl CreateDangerousProduct {
 
 #[derive(InputObject)]
 pub struct CreateExpiringProduct {
-    pub kind: String,
     pub code: String,
     pub description: String,
     pub expiration_date: DateTime<Utc>,
@@ -296,28 +320,6 @@ impl CreateExpiringProduct {
             code: self.code,
             description: self.description,
             expiration_date: self.expiration_date,
-        }
-    }
-}
-
-impl From<DbOrder> for Order {
-    fn from(db: DbOrder) -> Self {
-        Self {
-            id: ID::from(db.id),
-            customer: Customer {
-                id: ID::from(db.customer_id),
-                name: db.customer_name,
-                vat: db.customer_vat,
-            },
-            total_amount: Money {
-                amount: db.total_amount,
-                currency: Currency::EUR,
-            },
-            status: match db.status.as_str() {
-                "Confirmed" => OrderStatus::Confirmed,
-                "Deleted" => OrderStatus::Deleted,
-                _ => OrderStatus::Draft,
-            },
         }
     }
 }

@@ -5,7 +5,7 @@ use axum::{
     response::{Html, IntoResponse},
     routing::get,
 };
-use fso2f::ex00_init::schema::Query;
+use fso2f::ex01_simple_object::schema::Query;
 use sqlx::{Error, postgres::PgPoolOptions};
 
 #[tokio::main]

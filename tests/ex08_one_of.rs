@@ -1,6 +1,6 @@
 use async_graphql::{EmptySubscription, Request, Schema, Variables};
-use fso2f::ex08_one_of::schema::{Mutation, Query};
 use fso2f::db::products::retrieve_product_by_id;
+use fso2f::ex08_one_of::schema::{Mutation, Query};
 use serde_json::{Value, json};
 use sqlx::PgPool;
 
@@ -40,7 +40,6 @@ async fn ex_8() {
     let request = Request::new(MUTATION).variables(Variables::from_json(json!({
         "product": {
             "dangerousProduct": {
-                "kind": "dangerous",
                 "code": "DANGER-101",
                 "description": "Dangerous chemical",
                 "maxTemperature": 45.5

@@ -27,6 +27,7 @@ fn main() {
     match cmd.map(|s| s.as_str()) {
         Some("task") => task(verbose),
         Some("test") => test(verbose),
+        Some("demo") => demo(verbose),
         Some("solution") => solution(verbose),
         _ => print_help(),
     }
@@ -47,6 +48,45 @@ fn task(_verbose: bool) {
 
 fn show_current_task() {
     task(false);
+}
+
+fn ask_and_advance_to_next(exercises: &[Exercise], current_name: &str) {
+    let mut idx = match exercises.iter().position(|e| e.name == current_name) {
+        Some(i) => i,
+        None => return,
+    };
+
+    loop {
+        if idx + 1 >= exercises.len() {
+            println!("\n🎉 You completed all exercises!");
+            break;
+        }
+
+        let next = &exercises[idx + 1];
+        print!("\n👉 Proceed to next exercise '{}'? [Y/n] ", next.name);
+        io::stdout().flush().unwrap();
+
+        let mut input = String::new();
+        io::stdin().read_line(&mut input).unwrap();
+        let answer = input.trim().to_lowercase();
+
+        if answer.is_empty() || answer == "y" || answer == "yes" {
+            fs::write(PROGRESS_FILE, &next.name).expect("❌ Failed to update progress file");
+            println!();
+            show_current_task();
+            idx += 1;
+        } else {
+            break;
+        }
+    }
+}
+
+fn demo(_verbose: bool) {
+    let exercise_name = load_exercise();
+    let exercises = load_exercises();
+
+    show_current_task();
+    ask_and_advance_to_next(&exercises, &exercise_name);
 }
 
 fn load_exercise() -> String {
@@ -108,29 +148,7 @@ fn test(_verbose: bool) {
 
     if success {
         println!("\n✅ All tests passed!");
-
-        let current_idx = exercises.iter().position(|e| e.name == exercise_name);
-
-        if let Some(idx) = current_idx {
-            if idx + 1 < exercises.len() {
-                let next = &exercises[idx + 1];
-                print!("\n👉 Proceed to next exercise '{}'? [Y/n] ", next.name);
-                io::stdout().flush().unwrap();
-
-                let mut input = String::new();
-                io::stdin().read_line(&mut input).unwrap();
-                let answer = input.trim().to_lowercase();
-
-                if answer.is_empty() || answer == "y" || answer == "yes" {
-                    fs::write(PROGRESS_FILE, &next.name)
-                        .expect("❌ Failed to update progress file");
-                    println!();
-                    show_current_task();
-                }
-            } else {
-                println!("\n🎉 You completed all exercises!");
-            }
-        }
+        ask_and_advance_to_next(&exercises, &exercise_name);
     } else {
         println!("\n❌ Tests failed. Fix the code and try again!");
         println!("   Run `fso2f test` to re-check.\n");
@@ -186,6 +204,7 @@ From Simple Object to Federation Workshop Runner
 USAGE:
     fso2f task         Show instructions for the current exercise
     fso2f test         Run tests for the current exercise
+    fso2f demo         Show current task, then ask to proceed to next
     fso2f --help       Show this help message
 
 PROGRESS:
