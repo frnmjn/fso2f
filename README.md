@@ -1,21 +1,31 @@
-# fso2f - GraphQL Federation Workshop
-
 <p align="center">
-  <img src="assets/logo.svg" alt="fso2f logo" width="400"/>
+  <img src="assets/logo.svg" alt="fso2f logo" width="800"/>
 </p>
+
+## Intro
+
+Welcome! This hands-on workshop teaches you how to build scalable, distributed GraphQL APIs using federation patterns with Rust.
+
+We will walk through the Async-GraphQL [book](https://async-graphql.github.io/async-graphql/en/index.html), starting with simple resolvers and ending with schema evolution using feature flags.
+
+With the help of the workshop runner, you will receive each exercise task, and to move forward you need to make its related test pass.
+
 
 ## Prerequisite
 
-### Cargo-make installed
+### Rust toolchain
 
-Install cargo-make:
+Official guide: [Install Rust](https://www.rust-lang.org/tools/install)
+
+### Cargo Make (task runner)
+
 ```bash
 cargo install cargo-make
 ```
 
 ### Docker installed
 
-Follow your operating system to [install Docker](https://docs.docker.com/engine/install/)
+Follow your operating system instructions to [install Docker](https://docs.docker.com/engine/install/)
 
 ### Cosmo Wundergraph Account
 
@@ -23,13 +33,10 @@ Create an account on [cosmo wundergraph](https://cosmo.wundergraph.com/)
 
 ## Workshop Runner
 
-The workshop is structured as a series of exercises. A small CLI tool (`fso2f`) manages your progress:
+The workshop is structured as a series of exercises, and the following tasks will help you progress. The actual exercise is stored into the file .fso2f. Delete it to restart
 
-- `cargo make task` — Shows the instructions for the current exercise and checks out the corresponding branch
-- `cargo make test` — Runs the tests for the current exercise. If all pass, it asks whether to advance to the next one
-- `cargo make solution` — Checks out the branch with the solution for the current exercise
-
-Your current exercise is stored in the `.fso2f` file (git-ignored). The exercise definitions (instructions, test name, solution branch) live in `fso2f.json`.
+- `cargo make task` — Shows the instructions for the current exercise
+- `cargo make test` — Runs the test for the current exercise.
 
 ## Available Commands
 

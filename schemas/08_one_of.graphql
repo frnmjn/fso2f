@@ -1,19 +1,16 @@
 input CreateDangerousProduct {
-	kind: String!
 	code: String!
 	description: String!
 	maxTemperature: Float!
 }
 
 input CreateExpiringProduct {
-	kind: String!
 	code: String!
 	description: String!
 	expirationDate: DateTime!
 }
 
 input CreateProduct {
-	kind: String!
 	code: String!
 	description: String!
 }
@@ -66,10 +63,11 @@ type Order {
 }
 
 type OrderLine {
-	product: Product!
+	id: ID!
 	quantity: Int!
 	price: Money!
 	discount: Money
+	product: ProductKind!
 }
 
 enum OrderStatus {
@@ -82,7 +80,6 @@ type Product implements ProductKind {
 	id: ID!
 	code: String!
 	description: String!
-	salesCount: Int!
 }
 
 interface ProductKind {

@@ -7,7 +7,6 @@ type Product {
 	id: ID!
 	code: String!
 	description: String!
-	salesCount: Int!
 }
 
 type Query {

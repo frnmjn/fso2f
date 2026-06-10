@@ -1,12 +1,24 @@
+type Order {
+	id: ID!
+	totalAmount: Float!
+	lines: [OrderLine!]!
+}
+
+type OrderLine {
+	id: ID!
+	product: Product!
+	quantity: Int!
+}
+
 type Product {
 	id: ID!
 	code: String!
 	description: String!
-	salesCount: Int!
 }
 
 type Query {
 	product(code: String!): Product!
+	order(id: ID!): Order!
 }
 
 """

@@ -36,7 +36,8 @@ type Order {
 }
 
 type OrderLine {
-	product: Product!
+	id: ID!
+	product: ProductKind!
 	quantity: Int!
 	price: Money!
 	discount: Money
@@ -52,7 +53,6 @@ type Product {
 	id: ID!
 	code: String!
 	description: String!
-	salesCount: Int!
 }
 
 union ProductKind = Product | DangerousProduct | ExpiringProduct

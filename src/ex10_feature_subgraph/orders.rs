@@ -108,8 +108,8 @@ pub struct OrderLine {
     pub id: ID,
     pub product: ProductKind,
     pub quantity: i32,
-    pub price: f64,
-    pub discount: Option<f64>,
+    pub price: Money,
+    pub discount: Option<Money>,
 }
 
 impl From<DbOrderLine> for OrderLine {
@@ -120,8 +120,8 @@ impl From<DbOrderLine> for OrderLine {
                 id: ID::from(l.product_id),
             },
             quantity: l.quantity,
-            price: l.price,
-            discount: l.discount,
+            price: l.price.into(),
+            discount: l.discount.map(|d| d.into()),
         }
     }
 }
@@ -136,6 +136,15 @@ pub struct ProductKind {
 pub struct Money {
     pub amount: f64,
     pub currency: Currency,
+}
+
+impl From<f64> for Money {
+    fn from(amount: f64) -> Self {
+        Self {
+            amount,
+            currency: Currency::EUR,
+        }
+    }
 }
 
 async_graphql::scalar!(Money);
