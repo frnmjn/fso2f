@@ -1,6 +1,6 @@
 use async_graphql::{EmptySubscription, Request, Schema, Variables};
-use fso2f::ex09_one_of::schema::{Mutation, Query};
 use fso2f::db::products::retrieve_product_by_id;
+use fso2f::ex08_one_of::schema::{Mutation, Query};
 use serde_json::{Value, json};
 use sqlx::PgPool;
 
@@ -29,7 +29,7 @@ const MUTATION: &str = r#"
 "#;
 
 #[tokio::test]
-async fn ex_9() {
+async fn ex_8() {
     let pool = PgPool::connect("postgres://fso2f:fso2f@localhost:5432/fso2f")
         .await
         .unwrap();
@@ -40,7 +40,6 @@ async fn ex_9() {
     let request = Request::new(MUTATION).variables(Variables::from_json(json!({
         "product": {
             "dangerousProduct": {
-                "kind": "dangerous",
                 "code": "DANGER-101",
                 "description": "Dangerous chemical",
                 "maxTemperature": 45.5

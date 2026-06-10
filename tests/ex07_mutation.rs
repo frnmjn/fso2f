@@ -1,5 +1,5 @@
 use async_graphql::{EmptySubscription, Request, Schema, Variables};
-use fso2f::ex08_mutation::schema::{Mutation, Query};
+use fso2f::ex07_mutation::schema::{Mutation, Query};
 use fso2f::db::products::get_product_by_id;
 use serde_json::{Value, json};
 use sqlx::PgPool;
@@ -15,7 +15,7 @@ const MUTATION: &str = r#"
 "#;
 
 #[tokio::test]
-async fn ex_8() {
+async fn ex_7() {
     let pool = PgPool::connect("postgres://fso2f:fso2f@localhost:5432/fso2f")
         .await
         .unwrap();

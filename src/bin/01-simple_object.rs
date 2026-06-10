@@ -5,22 +5,19 @@ use axum::{
     response::{Html, IntoResponse},
     routing::get,
 };
-
-use fso2f::ex11_federated_subgraph::orders::Query;
+use fso2f::ex01_simple_object::schema::Query;
 use sqlx::{Error, postgres::PgPoolOptions};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     tracing_subscriber::fmt::init();
 
-    let database_url = std::env::var("DATABASE_URL")
-        .unwrap_or_else(|_| "postgres://fso2f:fso2f@localhost/fso2f".to_string());
     let pool = PgPoolOptions::new()
         .max_connections(5)
-        .connect(&database_url)
+        .connect("postgres://fso2f:fso2f@localhost:5432/fso2f")
         .await?;
 
-    let schema = Schema::build(Query::default(), EmptyMutation, EmptySubscription)
+    let schema = Schema::build(Query, EmptyMutation, EmptySubscription)
         .data(pool.clone())
         .finish();
 
@@ -30,11 +27,11 @@ async fn main() -> Result<(), Error> {
             "/graphql",
             get(graphiql).post_service(GraphQL::new(schema.clone())),
         )
-        .with_state(pool.clone());
+        .with_state(pool);
 
-    tracing::info!("🚀 Orders subgraph running at http://0.0.0.0:3002/graphql");
+    tracing::info!("🚀 Monolith running at http://0.0.0.0:3000");
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3002").await.unwrap();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
     Ok(())
 }

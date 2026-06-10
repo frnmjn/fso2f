@@ -1,5 +1,5 @@
 use async_graphql::{EmptyMutation, EmptySubscription, Request, Schema, Variables};
-use fso2f::ex06_union::schema::Query;
+use fso2f::ex05_union::schema::Query;
 use serde_json::{Value, json};
 
 const QUERY: &str = r#"
@@ -27,7 +27,7 @@ const QUERY: &str = r#"
 "#;
 
 #[tokio::test]
-async fn ex_6() {
+async fn ex_5() {
     let schema = Schema::new(Query::default(), EmptyMutation, EmptySubscription);
 
     let request = Request::new(QUERY).variables(Variables::from_json(json!({

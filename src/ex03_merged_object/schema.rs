@@ -1,5 +1,4 @@
-use async_graphql::{ComplexObject, ID, MergedObject, Object, Result, SimpleObject};
-
+use async_graphql::{ID, MergedObject, Object, SimpleObject};
 
 #[derive(MergedObject, Default)]
 pub struct Query(ProductQuery, OrderQuery);
@@ -19,19 +18,10 @@ impl ProductQuery {
 }
 
 #[derive(SimpleObject)]
-#[graphql(complex)]
 struct Product {
     id: ID,
     code: String,
     description: String,
-}
-
-#[ComplexObject]
-impl Product {
-    async fn sales_count(&self /*, ctx: &Context<'_> */) -> Result<i32> {
-        // let _ = ctx.data::<Pool<Postgres>>()?;
-        Ok(42)
-    }
 }
 
 #[derive(Default)]

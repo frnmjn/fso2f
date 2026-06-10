@@ -31,7 +31,7 @@ const QUERY: &str = r#"
 "#;
 
 #[tokio::test]
-async fn ex_10() {
+async fn ex_9() {
     let request = Request::new(QUERY).variables(Variables::from_json(json!({
         "orderId": "aaaa1111-aa11-4aa1-8aa1-aaaaaaaaaaaa",
     })));

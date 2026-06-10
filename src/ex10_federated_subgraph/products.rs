@@ -1,6 +1,5 @@
 use async_graphql::{
-    ComplexObject, Context, ID, InputObject, Interface, MergedObject, Object, OneofObject, Result,
-    SimpleObject,
+    Context, ID, InputObject, Interface, MergedObject, Object, OneofObject, Result, SimpleObject,
 };
 use chrono::{DateTime, Utc};
 use sqlx::{Pool, Postgres};
@@ -79,7 +78,6 @@ impl ProductQuery {
 }
 
 #[derive(SimpleObject)]
-#[graphql(complex)]
 pub struct Product {
     id: ID,
     code: String,
@@ -93,13 +91,6 @@ impl From<DbProduct> for Product {
             code: db.code,
             description: db.description,
         }
-    }
-}
-
-#[ComplexObject]
-impl Product {
-    async fn sales_count(&self) -> Result<i32> {
-        Ok(42)
     }
 }
 

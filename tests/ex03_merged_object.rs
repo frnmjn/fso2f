@@ -8,7 +8,6 @@ const QUERY: &str = r#"
             id
             code
             description
-            salesCount
         }
         order(id: $orderId) {
             id
@@ -40,7 +39,6 @@ async fn ex_3() {
     assert!(product["id"].is_string());
     assert_eq!(product["code"], "WIDGET-001");
     assert_eq!(product["description"], "A sample product");
-    assert_eq!(product["salesCount"], 42);
 
     let order = &data["order"];
     assert_eq!(order["id"], "aaaa1111-aa11-4aa1-8aa1-aaaaaaaaaaaa");

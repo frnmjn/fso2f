@@ -81,6 +81,7 @@ impl Order {
 
 #[derive(SimpleObject)]
 pub struct OrderLine {
+    pub id: ID,
     pub product: ProductKind,
     pub quantity: i32,
     pub price: f64,
@@ -90,6 +91,7 @@ pub struct OrderLine {
 impl From<DbOrderLine> for OrderLine {
     fn from(l: DbOrderLine) -> Self {
         Self {
+            id: ID::from(l.id),
             product: ProductKind {
                 id: ID::from(l.product_id),
             },

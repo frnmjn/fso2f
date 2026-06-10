@@ -5,8 +5,7 @@ use axum::{
     response::{Html, IntoResponse},
     routing::get,
 };
-
-use fso2f::ex10_federated_subgraph::orders::Query;
+use fso2f::ex09_federation::orders::Query;
 use sqlx::{Error, postgres::PgPoolOptions};
 
 #[tokio::main]

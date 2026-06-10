@@ -1,9 +1,6 @@
-use async_graphql::{
-    ComplexObject, Enum, ID, Interface, MergedObject, Object, Result, SimpleObject,
-};
+use async_graphql::{ComplexObject, Enum, ID, Interface, MergedObject, Object, SimpleObject};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-
 
 #[derive(MergedObject, Default)]
 pub struct Query(ProductQuery, OrderQuery);
@@ -39,18 +36,10 @@ impl ProductQuery {
 }
 
 #[derive(SimpleObject)]
-#[graphql(complex)]
 pub struct Product {
     id: ID,
     code: String,
     description: String,
-}
-
-#[ComplexObject]
-impl Product {
-    async fn sales_count(&self) -> Result<i32> {
-        Ok(42)
-    }
 }
 
 #[derive(SimpleObject)]
@@ -132,6 +121,7 @@ impl Order {
     async fn lines(&self) -> Vec<OrderLine> {
         vec![
             OrderLine {
+                id: ID::from(uuid::Uuid::new_v4().to_string()),
                 product: Product {
                     id: ID::from(uuid::Uuid::new_v4().to_string()),
                     code: "P001".to_string(),
@@ -148,6 +138,7 @@ impl Order {
                 }),
             },
             OrderLine {
+                id: ID::from(uuid::Uuid::new_v4().to_string()),
                 product: Product {
                     id: ID::from(uuid::Uuid::new_v4().to_string()),
                     code: "P002".to_string(),
@@ -166,6 +157,7 @@ impl Order {
 
 #[derive(SimpleObject)]
 pub struct OrderLine {
+    pub id: ID,
     pub product: Product,
     pub quantity: i32,
     pub price: Money,

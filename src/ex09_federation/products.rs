@@ -1,19 +1,17 @@
 use async_graphql::{
-    ComplexObject, Context, Enum, ID, InputObject, Interface, MergedObject, Object, OneofObject,
-    Result, SimpleObject,
+    Context, ID, InputObject, Interface, MergedObject, Object, OneofObject, Result, SimpleObject,
 };
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Postgres};
 
-use crate::db::orders::{DbOrder, get_order_by_id, get_order_lines_by_order_id};
 use crate::db::products::{
-    DbDangerousProduct, DbExpiringProduct, DbProduct, DbProductKind, get_product_by_id,
-    insert_product, retrieve_product_by_code,
+    DbDangerousProduct, DbExpiringProduct, DbProduct, DbProductKind, get_dangerous_product_by_id,
+    get_expiring_product_by_id, get_product_by_id, insert_product, retrieve_product_by_code,
+    retrieve_product_by_id,
 };
 
 #[derive(MergedObject, Default)]
-pub struct Query(ProductQuery, OrderQuery);
+pub struct Query(ProductQuery);
 
 #[derive(Default)]
 pub struct ProductQuery;
@@ -25,10 +23,61 @@ impl ProductQuery {
         let product = retrieve_product_by_code(pool, &code).await?;
         Ok(product.map(ProductKind::from))
     }
+
+    #[graphql(entity)]
+    async fn find_product_by_id(
+        &self,
+        ctx: &Context<'_>,
+        #[graphql(key)] id: ID,
+    ) -> async_graphql::Result<Product> {
+        let pool = ctx.data::<Pool<Postgres>>()?;
+        let db_product = get_product_by_id(pool, id.as_str())
+            .await?
+            .ok_or_else(|| async_graphql::Error::new("Standard product not found"))?;
+        Ok(db_product.into())
+    }
+
+    #[graphql(entity)]
+    async fn find_expiring_product_by_id(
+        &self,
+        ctx: &Context<'_>,
+        #[graphql(key)] id: ID,
+    ) -> async_graphql::Result<ExpiringProduct> {
+        let pool = ctx.data::<Pool<Postgres>>()?;
+        let db_product = get_expiring_product_by_id(pool, id.as_str())
+            .await?
+            .ok_or_else(|| async_graphql::Error::new("Expiring product not found"))?;
+        Ok(db_product.into())
+    }
+
+    #[graphql(entity)]
+    async fn find_dangerous_product_by_id(
+        &self,
+        ctx: &Context<'_>,
+        #[graphql(key)] id: ID,
+    ) -> async_graphql::Result<DangerousProduct> {
+        let pool = ctx.data::<Pool<Postgres>>()?;
+        let db_product = get_dangerous_product_by_id(pool, id.as_str())
+            .await?
+            .ok_or_else(|| async_graphql::Error::new("Dangerous product not found"))?;
+        Ok(db_product.into())
+    }
+
+    #[graphql(entity)]
+    async fn find_product_kind_by_id(
+        &self,
+        ctx: &Context<'_>,
+        #[graphql(key)] id: ID,
+    ) -> async_graphql::Result<ProductKind> {
+        let pool = ctx.data::<Pool<Postgres>>()?;
+        let db_product = retrieve_product_by_id(pool, id.as_str())
+            .await?
+            .ok_or_else(|| async_graphql::Error::new("Product not found"))?;
+        Ok(db_product.into())
+    }
 }
 
 #[derive(SimpleObject)]
-#[graphql(complex)]
 pub struct Product {
     id: ID,
     code: String,
@@ -38,17 +87,10 @@ pub struct Product {
 impl From<DbProduct> for Product {
     fn from(db: DbProduct) -> Self {
         Self {
-            id: ID::from(db.id),
+            id: ID::from(db.id.to_string()),
             code: db.code,
             description: db.description,
         }
-    }
-}
-
-#[ComplexObject]
-impl Product {
-    async fn sales_count(&self) -> Result<i32> {
-        Ok(42)
     }
 }
 
@@ -63,7 +105,7 @@ pub struct DangerousProduct {
 impl From<DbDangerousProduct> for DangerousProduct {
     fn from(db: DbDangerousProduct) -> Self {
         Self {
-            id: ID::from(db.id),
+            id: ID::from(db.id.to_string()),
             code: db.code,
             description: db.description,
             max_temperature: db.max_temperature,
@@ -82,7 +124,7 @@ pub struct ExpiringProduct {
 impl From<DbExpiringProduct> for ExpiringProduct {
     fn from(db: DbExpiringProduct) -> Self {
         Self {
-            id: ID::from(db.id),
+            id: ID::from(db.id.to_string()),
             code: db.code,
             description: db.description,
             expiration_date: db.expiration_date,
@@ -110,97 +152,6 @@ impl From<DbProductKind> for ProductKind {
             DbProductKind::Expiring(p) => ProductKind::ExpiringProduct(ExpiringProduct::from(p)),
         }
     }
-}
-
-#[derive(Default)]
-struct OrderQuery;
-
-#[Object]
-impl OrderQuery {
-    async fn order(&self, ctx: &Context<'_>, id: ID) -> Result<Option<Order>> {
-        let pool = ctx.data::<Pool<Postgres>>()?;
-        let db_order = get_order_by_id(pool, id.as_str()).await?;
-        Ok(db_order.map(Order::from))
-    }
-}
-
-#[derive(SimpleObject)]
-#[graphql(complex)]
-struct Order {
-    id: ID,
-    customer: Customer,
-    total_amount: Money,
-    status: OrderStatus,
-}
-
-#[derive(SimpleObject)]
-pub struct Customer {
-    pub id: ID,
-    pub name: String,
-    pub vat: String,
-}
-
-#[derive(Enum, Copy, Clone, Eq, PartialEq)]
-pub enum OrderStatus {
-    Draft,
-    Confirmed,
-    #[graphql(name = "Cancelled")]
-    Deleted,
-}
-
-#[ComplexObject]
-impl Order {
-    async fn lines(&self, ctx: &Context<'_>) -> Result<Vec<OrderLine>> {
-        let pool = ctx.data::<Pool<Postgres>>()?;
-        let db_lines = get_order_lines_by_order_id(pool, self.id.as_str()).await?;
-        let mut lines = Vec::new();
-        for line in db_lines {
-            let product = get_product_by_id(pool, &line.product_id)
-                .await?
-                .map(Product::from)
-                .unwrap_or(Product {
-                    id: ID::from(line.product_id),
-                    code: "UNKNOWN".to_string(),
-                    description: "Unknown product".to_string(),
-                });
-            lines.push(OrderLine {
-                product,
-                quantity: line.quantity,
-                price: Money {
-                    amount: line.price,
-                    currency: Currency::EUR,
-                },
-                discount: line.discount.map(|d| Money {
-                    amount: d,
-                    currency: Currency::EUR,
-                }),
-            });
-        }
-        Ok(lines)
-    }
-}
-
-#[derive(SimpleObject)]
-pub struct OrderLine {
-    pub product: Product,
-    pub quantity: i32,
-    pub price: Money,
-    pub discount: Option<Money>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Money {
-    pub amount: f64,
-    pub currency: Currency,
-}
-
-async_graphql::scalar!(Money);
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum Currency {
-    EUR,
-    USD,
-    GBP,
 }
 
 #[derive(MergedObject, Default)]
@@ -296,28 +247,6 @@ impl CreateExpiringProduct {
             code: self.code,
             description: self.description,
             expiration_date: self.expiration_date,
-        }
-    }
-}
-
-impl From<DbOrder> for Order {
-    fn from(db: DbOrder) -> Self {
-        Self {
-            id: ID::from(db.id),
-            customer: Customer {
-                id: ID::from(db.customer_id),
-                name: db.customer_name,
-                vat: db.customer_vat,
-            },
-            total_amount: Money {
-                amount: db.total_amount,
-                currency: Currency::EUR,
-            },
-            status: match db.status.as_str() {
-                "Confirmed" => OrderStatus::Confirmed,
-                "Deleted" => OrderStatus::Deleted,
-                _ => OrderStatus::Draft,
-            },
         }
     }
 }
