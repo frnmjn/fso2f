@@ -15,6 +15,7 @@ type Order {
 }
 
 type OrderLine {
+	id: ID!
 	product: Product!
 	quantity: Int!
 	price: Money!
@@ -31,7 +32,6 @@ type Product {
 	id: ID!
 	code: String!
 	description: String!
-	salesCount: Int!
 }
 
 type Query {

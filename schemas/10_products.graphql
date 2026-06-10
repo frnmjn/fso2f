@@ -1,19 +1,16 @@
 input CreateDangerousProduct {
-	kind: String!
 	code: String!
 	description: String!
 	maxTemperature: Float!
 }
 
 input CreateExpiringProduct {
-	kind: String!
 	code: String!
 	description: String!
 	expirationDate: DateTime!
 }
 
 input CreateProduct {
-	kind: String!
 	code: String!
 	description: String!
 }
@@ -53,7 +50,6 @@ type Product implements ProductKind @key(fields: "id") {
 	id: ID!
 	code: String!
 	description: String!
-	salesCount: Int!
 }
 
 interface ProductKind @key(fields: "id") {

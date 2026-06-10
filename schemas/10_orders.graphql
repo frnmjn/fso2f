@@ -15,10 +15,11 @@ type Order {
 }
 
 type OrderLine {
+	id: ID!
 	product: ProductKind!
 	quantity: Int!
-	price: Float!
-	discount: Float
+	price: Money!
+	discount: Money
 }
 
 enum OrderStatus {

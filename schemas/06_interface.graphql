@@ -36,6 +36,7 @@ type Order {
 }
 
 type OrderLine {
+	id: ID!
 	product: Product!
 	quantity: Int!
 	price: Money!
@@ -52,7 +53,6 @@ type Product implements ProductKind {
 	id: ID!
 	code: String!
 	description: String!
-	salesCount: Int!
 }
 
 interface ProductKind {

@@ -198,7 +198,6 @@ impl CreateProductKind {
 
 #[derive(InputObject)]
 pub struct CreateProduct {
-    pub kind: String,
     pub code: String,
     pub description: String,
 }
@@ -215,7 +214,6 @@ impl CreateProduct {
 
 #[derive(InputObject)]
 pub struct CreateDangerousProduct {
-    pub kind: String,
     pub code: String,
     pub description: String,
     pub max_temperature: f64,
@@ -234,7 +232,6 @@ impl CreateDangerousProduct {
 
 #[derive(InputObject)]
 pub struct CreateExpiringProduct {
-    pub kind: String,
     pub code: String,
     pub description: String,
     pub expiration_date: DateTime<Utc>,

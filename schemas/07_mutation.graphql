@@ -45,10 +45,11 @@ type Order {
 }
 
 type OrderLine {
-	product: Product!
+	id: ID!
 	quantity: Int!
 	price: Money!
 	discount: Money
+	product: ProductKind!
 }
 
 enum OrderStatus {
@@ -61,7 +62,6 @@ type Product implements ProductKind {
 	id: ID!
 	code: String!
 	description: String!
-	salesCount: Int!
 }
 
 interface ProductKind {
