@@ -57,7 +57,7 @@
     {
       "name": "10",
       "instructions": "Add a customers subgraph (port 3003) behind a feature flag that overrides the customer name from the orders subgraph using @override. Use `cargo make control-plane` with WunderGraph cloud.\n\n📚 https://async-graphql.github.io/async-graphql/en/apollo_federation.html\n\nMake the test ex10 pass!",
-      "test": "ex10_federated_subgraph",
+      "test": "ex10_feature_subgraph",
       "solution": ""
     },
     {

@@ -3,7 +3,7 @@ use fso2f::{
     ex01_simple_object, ex02_complex_object, ex03_merged_object, ex04_modeling, ex05_union,
     ex06_interface, ex07_mutation, ex08_one_of,
     ex09_federation::{orders, products},
-    ex10_federated_subgraph::{
+    ex10_feature_subgraph::{
         customers as fs_customers, fake_customers as fs_fake_customers, orders as fs_orders,
         products as fs_products,
     },
