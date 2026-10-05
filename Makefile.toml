@@ -61,6 +61,20 @@ args = [
     "./schemas/federation/router.json",
 ]
 
+[tasks.supergraph]
+description = "Generate schemas/13_supergraph.graphql from the 09 subgraphs if missing"
+script = '''
+set -e
+if [ -f schemas/13_supergraph.graphql ]; then
+    echo "schemas/13_supergraph.graphql already exists"
+    exit 0
+fi
+wgc router compose -i ./schemas/federation/federation-compose.yaml -o ./schemas/federation/router.json
+# A partial file would be skipped on rerun and break build.rs for the whole crate.
+jq -er '.engineConfig.graphqlSchema' schemas/federation/router.json > schemas/13_supergraph.graphql.tmp
+mv schemas/13_supergraph.graphql.tmp schemas/13_supergraph.graphql
+'''
+
 [tasks.local]
 description = "Run all subgraphs locally with local router"
 script = '''
@@ -232,6 +246,7 @@ echo "Local Federation:"
 echo "  cargo make export-schemas                           - Export GraphQL schemas"
 echo "  cargo make wgc-build-router                         - Build router configuration"
 echo "  cargo make local                                    - Run all subgraphs with local router"
+echo "  cargo make supergraph                               - Generate the supergraph schema used by ex13"
 echo ""
 echo "WunderGraph Federation:"
 echo "  cargo make federated-graph-create                   - Create the federated graph"

@@ -12,3 +12,4 @@ pub mod ex09_federation;
 pub mod ex10_feature_subgraph;
 pub mod ex11_dataloader;
 pub mod ex12_dataloader_federated;
+pub mod ex13_cynic;

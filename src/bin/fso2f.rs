@@ -180,7 +180,7 @@ enum DockerRequirement {
 fn docker_requirement(exercise_name: &str) -> DockerRequirement {
     match exercise_name {
         "07" | "08" => DockerRequirement::Postgres,
-        "09" => DockerRequirement::LocalFederation,
+        "09" | "13" => DockerRequirement::LocalFederation,
         _ => DockerRequirement::None,
     }
 }

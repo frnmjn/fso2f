@@ -52,33 +52,18 @@
     },
     {
       "name": "11",
-      "instructions": "Use DataLoader to batch Product queries.
-
-You have an Order with multiple OrderLines, each referencing a Product.
-
-Without DataLoader, OrderLine.product resolver is called N times → N database queries (N+1 problem).
-
-Implement a DataLoader<ProductId, Product> that batches the product IDs and loads them in a single query.
-
-The Product resolver (get_product_details) simulates a DB call that should only happen once per batch of unique product IDs.
-
-📚 https: //async-graphql.github.io/async-graphql/en/data_loader.html
-
-Make the test ex11 pass!","test": "ex11_dataloader"
+      "instructions": "Every OrderLine resolves its product with its own query: an order with N lines costs N queries (N+1 problem).\n\nAdd a ProductLoader (DataLoader) that collects the product ids of the request and loads them with a single query. Add the batch function to the db folder.\n\nOrderLine.product must go through the loader.\n\n📚 https://async-graphql.github.io/async-graphql/en/dataloader.html\n\nMake the test ex11 pass!",
+      "test": "ex11_dataloader"
     },
     {
       "name": "12",
-      "instructions": "Apply DataLoader to the federated architecture (ex09).
-
-Without DataLoader, the products subgraph receives one _entities call from the router with 50 representations, but invokes find_product_by_id 50 times sequentially → 50 DB queries.
-
-Implement a DataLoader inside the products subgraph to batch these calls → 1-2 DB queries.
-
-The key insight: federation's network batching ≠ database batching. You need DataLoader inside each subgraph.
-
-📚 https: //async-graphql.github.io/async-graphql/en/data_loader.html
-
-Make the test ex12 pass!","test": "ex12_dataloader_federated"
+      "instructions": "Apply DataLoader to the products subgraph of ex09.\n\nThe router sends one _entities call with many representations, but async-graphql invokes the entity resolvers once per representation: N representations cost N queries.\n\nMake every entity resolver go through a ProductLoader so that they are resolved by a single query.\n\nThe key insight: federation's network batching is not database batching. You need a DataLoader inside each subgraph.\n\n📚 https://async-graphql.github.io/async-graphql/en/dataloader.html\n\nMake the test ex12 pass!",
+      "test": "ex12_dataloader_federated"
+    },
+    {
+      "name": "13",
+      "instructions": "Query the ex09 federated graph from a typed Rust client using cynic.\n\nThe supergraph schema is in schemas/13_supergraph.graphql (generate it with `cargo make supergraph` if missing) and is registered in build.rs.\n\nImplement fetch_order (query) and create_product (mutation with a @oneOf input) in src/ex13_cynic. Use QueryFragment, InlineFragments, Enum, InputObject and custom scalars.\n\nRun `cargo make local` first.\n\n📚 https://cynic-rs.dev/quickstart.html\n\nMake the test ex13 pass!",
+      "test": "ex13_cynic"
     }
   ]
 }

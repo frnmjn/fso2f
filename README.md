@@ -27,6 +27,10 @@ cargo install cargo-make
 
 Follow your operating system instructions to [install Docker](https://docs.docker.com/engine/install/)
 
+### jq
+
+Required by `cargo make supergraph` (`brew install jq`).
+
 ### Cosmo Wundergraph Account
 
 Create an account on [cosmo wundergraph](https://cosmo.wundergraph.com/)

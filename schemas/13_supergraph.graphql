@@ -1,0 +1,99 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+input CreateDangerousProduct {
+  code: String!
+  description: String!
+  maxTemperature: Float!
+}
+
+input CreateExpiringProduct {
+  code: String!
+  description: String!
+  expirationDate: DateTime!
+}
+
+input CreateProduct {
+  code: String!
+  description: String!
+}
+
+input CreateProductKind @oneOf {
+  product: CreateProduct
+  dangerousProduct: CreateDangerousProduct
+  expiringProduct: CreateExpiringProduct
+}
+
+"""
+Implement the DateTime<Utc> scalar
+
+The input/output is a string in RFC3339 format.
+"""
+scalar DateTime
+
+type Mutation {
+  createProduct(product: CreateProductKind!): ProductKind!
+}
+
+interface ProductKind {
+  id: ID!
+  code: String!
+  description: String!
+}
+
+type Query {
+  product(code: String!): ProductKind
+  order(id: ID!): Order
+}
+
+type Customer {
+  id: ID!
+  name: String!
+  vat: String!
+}
+
+scalar Money
+
+type Order {
+  id: ID!
+  customer: Customer!
+  totalAmount: Money!
+  status: OrderStatus!
+  lines: [OrderLine!]!
+}
+
+type OrderLine {
+  id: ID!
+  product: ProductKind!
+  quantity: Int!
+  price: Money!
+  discount: Money
+}
+
+enum OrderStatus {
+  DRAFT
+  CONFIRMED
+  Cancelled
+}
+
+type DangerousProduct implements ProductKind {
+  id: ID!
+  code: String!
+  description: String!
+  maxTemperature: Float!
+}
+
+type ExpiringProduct implements ProductKind {
+  id: ID!
+  code: String!
+  description: String!
+  expirationDate: DateTime!
+}
+
+type Product implements ProductKind {
+  id: ID!
+  code: String!
+  description: String!
+}
