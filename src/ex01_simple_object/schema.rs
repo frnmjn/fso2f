@@ -1,6 +1,5 @@
 use async_graphql::{ID, Object, SimpleObject};
 
-
 pub struct Query;
 
 #[Object]

@@ -10,3 +10,5 @@ pub mod ex07_mutation;
 pub mod ex08_one_of;
 pub mod ex09_federation;
 pub mod ex10_feature_subgraph;
+pub mod ex11_dataloader;
+pub mod ex12_dataloader_federated;

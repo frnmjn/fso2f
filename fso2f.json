@@ -49,6 +49,36 @@
       "name": "10",
       "instructions": "Add a customers subgraph (port 3003) behind a feature flag that overrides the customer name from the orders subgraph using @override. \n\nFollow the federation part of the cargo make help.\n\n📚 https://async-graphql.github.io/async-graphql/en/apollo_federation.html\n\nMake the test ex10 pass!",
       "test": "ex10_feature_subgraph"
+    },
+    {
+      "name": "11",
+      "instructions": "Use DataLoader to batch Product queries.
+
+You have an Order with multiple OrderLines, each referencing a Product.
+
+Without DataLoader, OrderLine.product resolver is called N times → N database queries (N+1 problem).
+
+Implement a DataLoader<ProductId, Product> that batches the product IDs and loads them in a single query.
+
+The Product resolver (get_product_details) simulates a DB call that should only happen once per batch of unique product IDs.
+
+📚 https: //async-graphql.github.io/async-graphql/en/data_loader.html
+
+Make the test ex11 pass!","test": "ex11_dataloader"
+    },
+    {
+      "name": "12",
+      "instructions": "Apply DataLoader to the federated architecture (ex09).
+
+Without DataLoader, the products subgraph receives one _entities call from the router with 50 representations, but invokes find_product_by_id 50 times sequentially → 50 DB queries.
+
+Implement a DataLoader inside the products subgraph to batch these calls → 1-2 DB queries.
+
+The key insight: federation's network batching ≠ database batching. You need DataLoader inside each subgraph.
+
+📚 https: //async-graphql.github.io/async-graphql/en/data_loader.html
+
+Make the test ex12 pass!","test": "ex12_dataloader_federated"
     }
   ]
 }

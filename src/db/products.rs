@@ -6,6 +6,17 @@ pub enum DbProductKind {
     Dangerous(DbDangerousProduct),
     Expiring(DbExpiringProduct),
 }
+
+impl DbProductKind {
+    pub fn id(&self) -> &str {
+        match self {
+            DbProductKind::Product(p) => &p.id,
+            DbProductKind::Dangerous(p) => &p.id,
+            DbProductKind::Expiring(p) => &p.id,
+        }
+    }
+}
+
 #[derive(Debug, Clone, FromRow)]
 pub struct DbProduct {
     pub id: String,
@@ -33,11 +44,13 @@ pub async fn retrieve_product_by_id(
     pool: &Pool<Postgres>,
     id: &str,
 ) -> Result<Option<DbProductKind>> {
-    let row: Option<(String,)> = query_as("SELECT kind FROM products WHERE id = $1")
-        .bind(id)
+    struct KindRow {
+        kind: String,
+    }
+    let row = query_as!(KindRow, "SELECT kind FROM products WHERE id = $1", id)
         .fetch_optional(pool)
         .await?;
-    match row.as_ref().map(|r| r.0.as_str()) {
+    match row.as_ref().map(|r| r.kind.as_str()) {
         Some("dangerous") => Ok(get_dangerous_product_by_id(pool, id)
             .await?
             .map(DbProductKind::Dangerous)),
@@ -55,11 +68,18 @@ pub async fn retrieve_product_by_code(
     pool: &Pool<Postgres>,
     code: &str,
 ) -> Result<Option<DbProductKind>> {
-    let row: Option<(String, String)> = query_as("SELECT id, kind FROM products WHERE code = $1")
-        .bind(code)
-        .fetch_optional(pool)
-        .await?;
-    match row.as_ref().map(|r| (r.0.as_str(), r.1.as_str())) {
+    struct IdKindRow {
+        id: String,
+        kind: String,
+    }
+    let row = query_as!(
+        IdKindRow,
+        "SELECT id, kind FROM products WHERE code = $1",
+        code
+    )
+    .fetch_optional(pool)
+    .await?;
+    match row.as_ref().map(|r| (r.id.as_str(), r.kind.as_str())) {
         Some((id, "dangerous")) => Ok(get_dangerous_product_by_id(pool, id)
             .await?
             .map(DbProductKind::Dangerous)),
@@ -74,22 +94,74 @@ pub async fn retrieve_product_by_code(
 }
 
 pub async fn get_product_by_id(pool: &Pool<Postgres>, id: &str) -> Result<Option<DbProduct>> {
-    query_as::<_, DbProduct>("SELECT id, code, description FROM products WHERE id = $1")
-        .bind(id)
-        .fetch_optional(pool)
-        .await
+    query_as!(
+        DbProduct,
+        "SELECT id, code, description FROM products WHERE id = $1",
+        id
+    )
+    .fetch_optional(pool)
+    .await
+}
+
+pub async fn retrieve_products_by_ids(
+    pool: &Pool<Postgres>,
+    ids: &[String],
+) -> Result<Vec<DbProductKind>> {
+    struct ProductJoinRow {
+        id: String,
+        code: String,
+        description: String,
+        kind: String,
+        max_temperature: Option<f64>,
+        expiration_date: Option<chrono::DateTime<chrono::Utc>>,
+    }
+    let rows = query_as!(
+        ProductJoinRow,
+        "SELECT p.id, p.code, p.description, p.kind, dp.max_temperature, ep.expiration_date \
+         FROM products p \
+         LEFT JOIN dangerous_products dp ON p.id = dp.id \
+         LEFT JOIN expiring_products ep ON p.id = ep.id \
+         WHERE p.id = ANY($1)",
+        ids
+    )
+    .fetch_all(pool)
+    .await?;
+
+    Ok(rows
+        .into_iter()
+        .map(|row| match row.kind.as_str() {
+            "dangerous" => DbProductKind::Dangerous(DbDangerousProduct {
+                id: row.id,
+                code: row.code,
+                description: row.description,
+                max_temperature: row.max_temperature.unwrap_or_default(),
+            }),
+            "expiring" => DbProductKind::Expiring(DbExpiringProduct {
+                id: row.id,
+                code: row.code,
+                description: row.description,
+                expiration_date: row.expiration_date.unwrap_or_default(),
+            }),
+            _ => DbProductKind::Product(DbProduct {
+                id: row.id,
+                code: row.code,
+                description: row.description,
+            }),
+        })
+        .collect())
 }
 
 pub async fn get_dangerous_product_by_id(
     pool: &Pool<Postgres>,
     id: &str,
 ) -> Result<Option<DbDangerousProduct>> {
-    query_as::<_, DbDangerousProduct>(
+    query_as!(
+        DbDangerousProduct,
         "SELECT p.id, p.code, p.description, dp.max_temperature \
          FROM products p JOIN dangerous_products dp ON p.id = dp.id \
          WHERE p.id = $1",
+        id
     )
-    .bind(id)
     .fetch_optional(pool)
     .await
 }
@@ -98,12 +170,13 @@ pub async fn get_expiring_product_by_id(
     pool: &Pool<Postgres>,
     id: &str,
 ) -> Result<Option<DbExpiringProduct>> {
-    query_as::<_, DbExpiringProduct>(
+    query_as!(
+        DbExpiringProduct,
         "SELECT p.id, p.code, p.description, ep.expiration_date \
          FROM products p JOIN expiring_products ep ON p.id = ep.id \
          WHERE p.id = $1",
+        id
     )
-    .bind(id)
     .fetch_optional(pool)
     .await
 }
@@ -129,15 +202,16 @@ pub async fn insert_standard_product(
     pool: &Pool<Postgres>,
     product: DbProduct,
 ) -> Result<DbProduct> {
-    query_as::<_, DbProduct>(
+    query_as!(
+        DbProduct,
         "INSERT INTO products (id, code, description, kind) \
          VALUES ($1, $2, $3, $4) \
          RETURNING id, code, description",
+        product.id,
+        product.code,
+        product.description,
+        "standard"
     )
-    .bind(&product.id)
-    .bind(&product.code)
-    .bind(&product.description)
-    .bind("standard")
     .fetch_one(pool)
     .await
 }
@@ -165,12 +239,13 @@ pub async fn insert_dangerous_product(
         .execute(&mut *tx)
         .await?;
 
-    let row = query_as::<_, DbDangerousProduct>(
+    let row = query_as!(
+        DbDangerousProduct,
         "SELECT p.id, p.code, p.description, dp.max_temperature \
          FROM products p JOIN dangerous_products dp ON p.id = dp.id \
          WHERE p.id = $1",
+        product.id
     )
-    .bind(&product.id)
     .fetch_one(&mut *tx)
     .await?;
 
@@ -201,12 +276,13 @@ pub async fn insert_expiring_product(
         .execute(&mut *tx)
         .await?;
 
-    let row = query_as::<_, DbExpiringProduct>(
+    let row = query_as!(
+        DbExpiringProduct,
         "SELECT p.id, p.code, p.description, ep.expiration_date \
          FROM products p JOIN expiring_products ep ON p.id = ep.id \
          WHERE p.id = $1",
+        product.id
     )
-    .bind(&product.id)
     .fetch_one(&mut *tx)
     .await?;
 
